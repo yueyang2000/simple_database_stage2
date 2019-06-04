@@ -1,12 +1,7 @@
 # 大作业——第二阶段
-## 代码阅读笔记
+## 开发日志
 - 处理sql语句的方式是使用全局的字符串流，先读前几个关键字，在process_operation函数里分流。可以考虑在这个函数的最下方再调用一个新写的函数实现附加功能分流（因为本来这个函数已经相当长了）
-- database.cpp 207行op==where不知道处理的是哪种语句
 - 注意容器里存的都是指针
-- database::select()里处理FROM哪列和哪个表的问题，然后调用table::select()继续处理WHERE
-- whereclause实现的方式很奇怪
-- 可以实现一下AS关键字
-## 修改记录
 - 为了读入多行sql语句，添加了`get_operation()`函数
 - 实现了LOAD，通过大段复制`Table::inserttocolum`函数实现，看来他们的代码基本是通的。
 - 决定创建类型`Quary`全全托管SELECT语句，彻底放弃原有select接口
@@ -15,6 +10,16 @@
 - 6.4早：文件输入输出完成
 - 建立Group类型管理group相同字段的标号
 - 6.4 17:00:完成group by多列分组标号
+- 删除原有select的所有代码以及相关函数、接口，去调Column.cpp和select.cpp两个文件
+- 6.4 21：00完成group by输出
+- 6.5 0:00 完成order by
+- 现有Quary类已经十分臃肿，考虑在多表时建立新的类型，而Quary只处理单表。
+
+##附加功能
+- AS
+- DISTINCT
+- ORDER升降序
+
 ## 利用接口
 ### `colbase`类接口
 - `update(int i,T changed)`修改第i个数据点为change
@@ -32,7 +37,3 @@
 - `map<string,string> typemap`存着列type
 ### `database`类成员
 - `whichdb->Table* gettable(string& x)`找到表格
-##附加功能
-- AS
-- DISTINCT
-- ORDER升降序

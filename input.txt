@@ -14,5 +14,9 @@ INSERT INTO animal(id,species) VALUES(10,'c');
 INSERT INTO animal(id,species) VALUES(11,'e');
 INSERT INTO animal(id,species) VALUES(12,'e');
 INSERT INTO animal(id,species) VALUES(13,'e');
-SELECT COUNT(*) FROM animal WHERE id<10 GROUP BY species sex;
+SELECT species,sex,COUNT(*)
+INTO OUTFILE 'output_file'
+FROM animal
+GROUP BY species,sex
+ORDER BY species;
 DROP DATABASE OOP;

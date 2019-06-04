@@ -1,8 +1,9 @@
 
 
-#include "Database.h"
+
 #ifndef QUARY_H_
 #define QUARY_H_
+#include "Database.h"
 #include <set>
 class Quary
 {
@@ -10,11 +11,13 @@ private:
     static set<string> keywords;
     vector<string> words;
     vector<string> col_name;
+    vector<bool> col_output;
     vector<string> as;
     map<string,colbase*> result;
     map<string,Table*> use_table;
     vector<string> group;
     vector<int> group_id;
+    int max_id;
     string order_by;
     bool has_function{false};
     int UNION{-1};
@@ -36,6 +39,8 @@ public:
     void simple_insert();
     void group_insert();
     void get_groupby_id();
+    void sort();
+    void swap_row(int,int);
     void output();
     ~Quary();
 };

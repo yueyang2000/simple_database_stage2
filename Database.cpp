@@ -258,10 +258,6 @@ bool Process_operation(string& operation){//将输⼊规范化，即去掉所有
         }
         return true;
     }
-    else if(op=="SELECT")
-    {
-    	whichdb->select();
-	}
 	else if(op=="DELETE")
 	{
 		whichdb->deletedata();

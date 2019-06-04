@@ -1,3 +1,7 @@
-2018011343	a
-2018011344	b
-2018011345	c
+species	sex	COUNT(*)	
+c	NULL	2	
+c	f	1	
+c	m	1	
+d	f	4	
+e	m	1	
+e	NULL	4	

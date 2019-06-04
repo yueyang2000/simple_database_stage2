@@ -1,11 +1,13 @@
-#include "Quary.h"
+
 #include <set>
 #include <stack>
 #include <fstream>
+#include <algorithm>
 #include "Group.h"
 void Quary::execute()
 {
     parser();
+
     if(use_table.size()==1)
     {
         simple_create_column();
@@ -15,11 +17,13 @@ void Quary::execute()
         }
         else{
             get_groupby_id();
-            //group_insert();
+            //debug();
+            group_insert();
         }
     }
-    //output();
-    debug();
+    sort();
+    output();
+    //debug();
 }
 set<string> Quary::keywords                                             //set容器：装有SQL语句的关键字(均为大写)
     {
@@ -119,6 +123,7 @@ void Quary::output()
     }
     for(int i=0;i<(int)col_name.size();i++)
     {
+        if(!col_output[i]) continue;
         cout<<col_name[i]<<'\t';
     }
     cout<<endl;
@@ -126,6 +131,7 @@ void Quary::output()
     {
         for(int lp=0;lp<(int)col_name.size();lp++)
         {
+            if(!col_output[lp]) continue;
             colbase* ptr=result[col_name[lp]];
             if(ptr->gettype()=="INT"){
                 Column<int>* ptr1=dynamic_cast<Column<int>*> (ptr);
@@ -170,12 +176,14 @@ void Quary::parser()
             {
                 as.push_back(words[pos+2]);
                 col_name.push_back(temp);
+                col_output.push_back(true);
                 pos+=3;
             }
             else
             {
                 as.push_back(temp);
                 col_name.push_back(temp);
+                col_output.push_back(true);
                 pos++;
             }
         }
@@ -215,6 +223,14 @@ void Quary::parser()
             while(keywords.count(words[pos])==0)
             {
                 group.push_back(words[pos]);
+                bool found=false;
+                for(int i=0;i<col_name.size();i++){
+                    if(col_name[i]==words[pos]){found=true;break;}
+                }
+                if(!found){
+                    col_name.push_back(words[pos]);
+                    col_output.push_back(false);
+                }
                 pos++;
                 if(pos==words.size()){
                     break;
@@ -225,6 +241,18 @@ void Quary::parser()
         {
             pos+=2;
             order_by=words[pos];
+            string temp="("+words[pos+1]+")";
+            if(order_by=="COUNT"){
+                order_by+=temp;
+            }
+            bool found=false;
+            for(int i=0;i<col_name.size();i++){
+                if(col_name[i]==order_by){found=true;break;}
+            }
+            if(!found){
+                col_name.push_back(order_by);
+                col_output.push_back(false);
+            }
         }
     cout<<"parser succeed!\n";
 }
@@ -529,6 +557,8 @@ void Quary::get_groupby_id(){
             group_id.push_back(groupby.get_id(compare,i));
         }
     }
+    max_id=groupby.get_num();
+    row=max_id;
     cout<<"group_id:";
     for(int i=0;i<rnum;i++){
         cout<<group_id[i]<<' ';
@@ -537,5 +567,110 @@ void Quary::get_groupby_id(){
 }
 void Quary::group_insert()
 {
-
+    int rnum=use_table.begin()->second->size;
+    Table* local=use_table.begin()->second; 
+    for(int id=0;id<max_id;id++){
+        for(int j=0;j<col_name.size();j++){
+            if(local->columns.count(col_name[j])){
+                for(int i=0;i<rnum;i++){
+                    if(group_id[i]==id){
+                        string t=result[col_name[j]]->gettype();
+                        if(t=="INT"){
+                            auto ptr1=dynamic_cast<Column<int>*>(result[col_name[j]]);
+                            auto ptr2=dynamic_cast<Column<int>*>(local->columns[col_name[j]]);
+                            ptr1->data.push_back(ptr2->getdata(i));
+                        }
+                        else if(t=="DOUBLE"){
+                            auto ptr1=dynamic_cast<Column<double>*>(result[col_name[j]]);
+                            auto ptr2=dynamic_cast<Column<double>*>(local->columns[col_name[j]]);
+                            ptr1->data.push_back(ptr2->getdata(i));
+                        }
+                        else if(t=="CHAR"){
+                            auto ptr1=dynamic_cast<Column<string>*>(result[col_name[j]]);
+                            auto ptr2=dynamic_cast<Column<string>*>(local->columns[col_name[j]]);
+                            ptr1->data.push_back(ptr2->getdata(i));
+                        }
+                        break;
+                    }
+                }
+            }
+            else{
+                auto it=col_name[j].begin();
+                while(*it!='(') it++;
+                string cname(it+1,col_name[j].end()-1);
+                if(col_name[j][0]=='C'){
+                    int count=0;
+                    if(cname=="*"){
+                        for(int i=0;i<rnum;i++){
+                            if(group_id[i]==id){count++;}
+                        }
+                    }
+                    else{
+                        for(int i=0;i<rnum;i++){
+                            if(group_id[i]==id&&!local->columns[cname]->getnull(i)){
+                                count++;
+                            }
+                        }
+                    }
+                    auto ptr=dynamic_cast<Column<int>*>(result[col_name[j]]);
+                    ptr->push_back(count);
+                }
+                else if(col_name[j][0]=='M'){}
+            }
+        }
+    }
+}
+void Quary::sort(){
+    if(order_by==""){return;}
+    colbase* compare=result[order_by];
+    if(compare->gettype()=="INT"){
+        auto ptr=dynamic_cast<Column<int>*> (compare);
+        for(int j=ptr->size()-1;j>=0;j--){
+            for(int i=0;i<j;i++){
+                if(ptr->cmp(i,1,ptr->getvalue(i+1))){
+                    swap_row(i,i+1);
+                }
+            }
+        }
+    }
+    else if(compare->gettype()=="DOUBLE"){
+        auto ptr=dynamic_cast<Column<double>*> (compare);
+        for(int j=ptr->size()-1;j>=0;j--){
+            for(int i=0;i<j;i++){
+                if(ptr->cmp(i,1,ptr->getvalue(i+1))){
+                    swap_row(i,i+1);
+                }
+            }
+        }
+    }
+    else if(compare->gettype()=="CHAR"){
+        auto ptr=dynamic_cast<Column<string>*> (compare);
+        for(int j=ptr->size()-1;j>=0;j--){
+            for(int i=0;i<j;i++){
+                if(ptr->cmp(i,1,ptr->getvalue(i+1))){
+                    swap_row(i,i+1);
+                }
+            }
+        }
+    }
+    else{}
+}
+void Quary::swap_row(int i,int j){
+    for(int lp=0;lp<col_name.size();lp++){
+        colbase* ptr=result[col_name[lp]];
+        string t=ptr->gettype();
+        if(t=="INT"){
+            auto ptr1=dynamic_cast<Column<int>*>(ptr);
+            ptr1->swap<int>(i,j);
+        }
+        else if(t=="DOUBLE"){
+            auto ptr1=dynamic_cast<Column<double>*>(ptr);
+            ptr1->swap<double>(i,j);
+        }
+        else if(t=="CHAR"){
+            auto ptr1=dynamic_cast<Column<string>*>(ptr);
+            ptr1->swap<string>(i,j);
+        }
+        else{}
+    }
 }

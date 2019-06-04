@@ -38,7 +38,6 @@ public:
         if(tables.count(x))return true;
         return false;
     }
-    void select();//选择行的接口
     void deletedata();//删除数据的接口
     void update();//更新数据的接口
     void load();

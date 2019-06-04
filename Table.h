@@ -55,10 +55,8 @@ public:
             }
         }
     }
-    void select();//
     void deletedata();//访问Column中删除数据点的接口，同时更改主键信息
     void update();//根据主键大小将被操作的行换至改变后应当在的位置，然后更改这一行的值（调用Column中的相应操作）
-    void select(vector<string> name,int total);
     void swap(Table*,int i1,int i2);//用于交换vector中的两行的函数
 
     friend class Quary;
@@ -68,7 +66,6 @@ public:
         return ptr->cmp(pos,k,value);
     }
 };
-
 int* whereclause(Table* table);//处理whereclause语句，返回符合条件的行号
 #endif //CODE_TABLE_H
 

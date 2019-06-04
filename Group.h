@@ -1,10 +1,13 @@
+#ifndef GROUP_H_
+#define GROUP_H_
+
 #include "Quary.h"
-#pragma once
 class Group
 {
     vector<colbase*> record;
     int num{0};
 public:
+    int get_num(){return num;}
     void add_column(colbase* col){
         string t=col->gettype();
         string cname=col->getname();
@@ -88,3 +91,5 @@ public:
         return num-1;
     }
 };
+
+#endif
