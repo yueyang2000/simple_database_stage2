@@ -13,9 +13,8 @@
 - 6.3 15：50：无group 的 COUNT基本完成，MAX和MIN暂时搁置
 - 6.3 完成第一阶段的select功能
 - 6.4早：文件输入输出完成
-- group by思路：
-
-
+- 建立Group类型管理group相同字段的标号
+- 6.4 17:00:完成group by多列分组标号
 ## 利用接口
 ### `colbase`类接口
 - `update(int i,T changed)`修改第i个数据点为change

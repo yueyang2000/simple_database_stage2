@@ -2,6 +2,7 @@
 #include <set>
 #include <stack>
 #include <fstream>
+#include "Group.h"
 void Quary::execute()
 {
     parser();
@@ -9,9 +10,15 @@ void Quary::execute()
     {
         simple_create_column();
         simple_where_clause();
-        simple_insert();
+        if(group.size()==0){
+            simple_insert();
+        }
+        else{
+            get_groupby_id();
+            //group_insert();
+        }
     }
-    output();
+    //output();
     debug();
 }
 set<string> Quary::keywords                                             //set容器：装有SQL语句的关键字(均为大写)
@@ -19,7 +26,8 @@ set<string> Quary::keywords                                             //set容
         "CREATE","DATABASE","DATABASES","USE","WHERE","SHOW","TABLE",
         "TABLES","INT","DOUBLE","CHAR","NOT","NULL","INSERT","INTO",
         "VALUES","DELETE","FROM","UPDATE","SET","SELECT","COLUMNS",
-        "DROP","AND","OR","XOR","NOT","OUTFILE","LEFT","RIGHT","ON"
+        "DROP","AND","OR","XOR","NOT","OUTFILE","LEFT","RIGHT","ON",
+        "GROUP","BY","ORDER"
     };
 Quary::Quary(string& sql)
 {
@@ -208,6 +216,9 @@ void Quary::parser()
             {
                 group.push_back(words[pos]);
                 pos++;
+                if(pos==words.size()){
+                    break;
+                }
             }
         }
         if(words[pos]=="ORDER")
@@ -332,6 +343,10 @@ void Quary::simple_insert()
             }
             row=row/(int)col_name.size();//最后算出行数
         }
+    }
+    else
+    {
+        group_insert();
     }
 }
 bool Quary::simple_judge(string& str,int r)
@@ -495,4 +510,32 @@ void Quary::simple_where_clause()
         else cout << "no" << " ";
     }
     cout << endl;*/
+}
+void Quary::get_groupby_id(){
+    int rnum=use_table.begin()->second->size;
+    Table* local=use_table.begin()->second; 
+    vector<colbase*> compare;//group的列
+    Group groupby;
+    for(int i=0;i<group.size();i++){
+        colbase* temp=local->columns[group[i]];
+        compare.push_back(temp);
+        groupby.add_column(temp);
+    }
+    for(int i=0;i<rnum;i++){
+        if(!pick[i]){
+            group_id.push_back(-1);
+        }
+        else{
+            group_id.push_back(groupby.get_id(compare,i));
+        }
+    }
+    cout<<"group_id:";
+    for(int i=0;i<rnum;i++){
+        cout<<group_id[i]<<' ';
+    }
+    cout<<endl;
+}
+void Quary::group_insert()
+{
+
 }

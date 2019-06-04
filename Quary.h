@@ -14,6 +14,7 @@ private:
     map<string,colbase*> result;
     map<string,Table*> use_table;
     vector<string> group;
+    vector<int> group_id;
     string order_by;
     bool has_function{false};
     int UNION{-1};
@@ -33,7 +34,8 @@ public:
     void simple_where_clause();
     bool simple_judge(string& str,int r);
     void simple_insert();
-    
+    void group_insert();
+    void get_groupby_id();
     void output();
     ~Quary();
 };

@@ -36,6 +36,7 @@ public:
     //构造函数
     virtual bool getnull(int i)=0;
     string gettype(){return type;}
+    string getname(){return cname;}
 };
 
 
@@ -121,8 +122,8 @@ public:
 		return;
 	}
     int size(){return (int)data.size();}
-
     friend class Quary;
+    friend class Group;
 };
 
 template <typename T>
