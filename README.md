@@ -11,8 +11,9 @@
 - 实现了LOAD，通过大段复制`Table::inserttocolum`函数实现，看来他们的代码基本是通的。
 - 决定创建类型`Quary`全全托管SELECT语句，彻底放弃原有select接口
 - 6.3 15：50：无group 的 COUNT基本完成，MAX和MIN暂时搁置
-
-
+- 6.3 完成第一阶段的select功能
+- 6.4早：文件输入输出完成
+- group by思路：
 
 
 ## 利用接口
@@ -35,3 +36,4 @@
 ##附加功能
 - AS
 - DISTINCT
+- ORDER升降序

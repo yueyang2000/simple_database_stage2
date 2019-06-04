@@ -70,6 +70,9 @@ public:
     T getvalue(int i){//访问数据点的值的接口
         return data[i].val;
     }
+    datapoint<T> getdata(int i){
+        return data[i];
+    }
     bool getnull(int i){return data[i].isnull;}
     bool cmp(int pos, int k, T val){//用于比较（主键）值的大小的函数，注意当其中被比较对象是空（is null）时，返回false（即排在该点之前）
         //k的值还可以用来灵活改变比大还是比小或比等，一个函数多用

@@ -16,7 +16,6 @@ private:
     vector<string> group;
     string order_by;
     bool has_function{false};
-    bool file{false};
     int UNION{-1};
     int order{-1};
     bool select_all{false};
@@ -26,14 +25,17 @@ private:
     vector<bool> pick;
     int row;
 public:
+    void debug();
     Quary(string& sql);
     void parser();
     void execute();
-    void create_column();
+    void simple_create_column();
     void simple_where_clause();
     bool simple_judge(string& str,int r);
     void simple_insert();
+    
     void output();
+    ~Quary();
 };
 
 

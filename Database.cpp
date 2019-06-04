@@ -158,6 +158,7 @@ bool Process_operation(string& operation){//将输⼊规范化，即去掉所有
     {
         Quary quary(operation);
         quary.execute();
+        while(ss>>op){}
         return false;
     }
     if(op=="CREATE"){
