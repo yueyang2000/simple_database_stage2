@@ -7,7 +7,6 @@
 void Quary::execute()
 {
     parser();
-
     if(use_table.size()==1)
     {
         simple_create_column();
@@ -21,6 +20,7 @@ void Quary::execute()
             group_insert();
         }
     }
+    //debug();
     sort();
     output();
     //debug();
@@ -132,19 +132,8 @@ void Quary::output()
         for(int lp=0;lp<(int)col_name.size();lp++)
         {
             if(!col_output[lp]) continue;
-            colbase* ptr=result[col_name[lp]];
-            if(ptr->gettype()=="INT"){
-                Column<int>* ptr1=dynamic_cast<Column<int>*> (ptr);
-                ptr1->select(i);
-            }
-            else if(ptr->gettype()=="DOUBLE"){
-                Column<double>* ptr1=dynamic_cast<Column<double>*> (ptr);
-                ptr1->select(i);
-            }
-            else if(ptr->gettype()=="CHAR"){
-                Column<string>* ptr1=dynamic_cast<Column<string>*> (ptr);
-                ptr1->select(i);
-            }
+            handle_col column(result[col_name[lp]]);
+            column.select(i);
             cout<<'\t';
         }
         cout<<endl;
@@ -266,6 +255,7 @@ void Quary::simple_create_column()
         for(int i=0;i<local->order.size();i++)
         {
             col_name.push_back(local->order[i]);
+            col_output.push_back(true);
         }
     }
     for(int i=0;i<(int)col_name.size();i++)
@@ -337,35 +327,10 @@ void Quary::simple_insert()
             row=0;
             for(int i=0;i<col_name.size();i++)
             {
-                colbase* ptr=result[col_name[i]];
-                if(ptr->gettype()=="INT"){
-                    Column<int>* from=dynamic_cast<Column<int>*> (local->columns[col_name[i]]);
-                    Column<int> * to=dynamic_cast<Column<int>*> (result[col_name[i]]);
-                    for(int j=0;j<rnum;j++){
-                        if(pick[j])
-                        {
-                            to->data.push_back(from->getdata(j));row++;
-                        }
-                    }
-                }
-                else if(ptr->gettype()=="DOUBLE"){
-                    Column<double>* from=dynamic_cast<Column<double>*> (local->columns[col_name[i]]);
-                    Column<double> * to=dynamic_cast<Column<double>*> (result[col_name[i]]);
-                    for(int j=0;j<rnum;j++){
-                        if(pick[j])
-                        {
-                            to->data.push_back(from->getdata(j));row++;
-                        }
-                    }
-                }
-                else if(ptr->gettype()=="CHAR"){
-                    Column<string>* from=dynamic_cast<Column<string>*> (local->columns[col_name[i]]);
-                    Column<string> * to=dynamic_cast<Column<string>*> (result[col_name[i]]);
-                    for(int j=0;j<rnum;j++){
-                        if(pick[j])
-                        {
-                            to->data.push_back(from->getdata(j));row++;
-                        }
+                handle_col column(local->columns[col_name[i]],result[col_name[i]]);
+                for(int j=0;j<rnum;j++){
+                    if(pick[j]){
+                        column.transform_data(j);row++;
                     }
                 }
             }
@@ -559,11 +524,11 @@ void Quary::get_groupby_id(){
     }
     max_id=groupby.get_num();
     row=max_id;
-    cout<<"group_id:";
+    /*cout<<"group_id:";
     for(int i=0;i<rnum;i++){
         cout<<group_id[i]<<' ';
     }
-    cout<<endl;
+    cout<<endl;*/
 }
 void Quary::group_insert()
 {
@@ -573,23 +538,9 @@ void Quary::group_insert()
         for(int j=0;j<col_name.size();j++){
             if(local->columns.count(col_name[j])){
                 for(int i=0;i<rnum;i++){
+                    handle_col column(local->columns[col_name[j]],result[col_name[j]]);
                     if(group_id[i]==id){
-                        string t=result[col_name[j]]->gettype();
-                        if(t=="INT"){
-                            auto ptr1=dynamic_cast<Column<int>*>(result[col_name[j]]);
-                            auto ptr2=dynamic_cast<Column<int>*>(local->columns[col_name[j]]);
-                            ptr1->data.push_back(ptr2->getdata(i));
-                        }
-                        else if(t=="DOUBLE"){
-                            auto ptr1=dynamic_cast<Column<double>*>(result[col_name[j]]);
-                            auto ptr2=dynamic_cast<Column<double>*>(local->columns[col_name[j]]);
-                            ptr1->data.push_back(ptr2->getdata(i));
-                        }
-                        else if(t=="CHAR"){
-                            auto ptr1=dynamic_cast<Column<string>*>(result[col_name[j]]);
-                            auto ptr2=dynamic_cast<Column<string>*>(local->columns[col_name[j]]);
-                            ptr1->data.push_back(ptr2->getdata(i));
-                        }
+                        column.transform_data(i);
                         break;
                     }
                 }
@@ -622,55 +573,22 @@ void Quary::group_insert()
 }
 void Quary::sort(){
     if(order_by==""){return;}
-    colbase* compare=result[order_by];
-    if(compare->gettype()=="INT"){
-        auto ptr=dynamic_cast<Column<int>*> (compare);
-        for(int j=ptr->size()-1;j>=0;j--){
-            for(int i=0;i<j;i++){
-                if(ptr->cmp(i,1,ptr->getvalue(i+1))){
-                    swap_row(i,i+1);
-                }
+    handle_col column(result[order_by],result[order_by]);
+    for(int j=column.size()-1;j>0;j--){
+        for(int i=0;i<j;i++){
+            if(column.compare(i,i+1,1)){
+                swap_row(i,i+1);
+                //cout<<"swap"<<i<<' '<<i+1<<endl;
+            }
+            else{
+                //cout<<i<<"smaller than"<<i+1<<endl;
             }
         }
     }
-    else if(compare->gettype()=="DOUBLE"){
-        auto ptr=dynamic_cast<Column<double>*> (compare);
-        for(int j=ptr->size()-1;j>=0;j--){
-            for(int i=0;i<j;i++){
-                if(ptr->cmp(i,1,ptr->getvalue(i+1))){
-                    swap_row(i,i+1);
-                }
-            }
-        }
-    }
-    else if(compare->gettype()=="CHAR"){
-        auto ptr=dynamic_cast<Column<string>*> (compare);
-        for(int j=ptr->size()-1;j>=0;j--){
-            for(int i=0;i<j;i++){
-                if(ptr->cmp(i,1,ptr->getvalue(i+1))){
-                    swap_row(i,i+1);
-                }
-            }
-        }
-    }
-    else{}
 }
 void Quary::swap_row(int i,int j){
     for(int lp=0;lp<col_name.size();lp++){
-        colbase* ptr=result[col_name[lp]];
-        string t=ptr->gettype();
-        if(t=="INT"){
-            auto ptr1=dynamic_cast<Column<int>*>(ptr);
-            ptr1->swap<int>(i,j);
-        }
-        else if(t=="DOUBLE"){
-            auto ptr1=dynamic_cast<Column<double>*>(ptr);
-            ptr1->swap<double>(i,j);
-        }
-        else if(t=="CHAR"){
-            auto ptr1=dynamic_cast<Column<string>*>(ptr);
-            ptr1->swap<string>(i,j);
-        }
-        else{}
+        handle_col column(result[col_name[lp]]);
+        column.swap(i,j);
     }
 }

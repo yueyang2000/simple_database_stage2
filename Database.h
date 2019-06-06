@@ -41,6 +41,8 @@ public:
     void deletedata();//删除数据的接口
     void update();//更新数据的接口
     void load();
+    friend void save_database();
+    friend void load_database();
 };
 
 bool Process_operation(string& operation);//处理规范字符串的接口

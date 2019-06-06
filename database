@@ -1,0 +1,1 @@
+1 OOP 1 animal 3 13 id INT 1 1 1 2 3 4 5 6 7 8 9 10 11 12 13 species CHAR 1 0 c d d c e c d d e c e e e sex CHAR 0 0 NULL f f f m m f f NULL NULL NULL NULL NULL 

@@ -14,14 +14,17 @@
 - 6.4 21：00完成group by输出
 - 6.5 0:00 完成order by
 - 现有Quary类已经十分臃肿，考虑在多表时建立新的类型，而Quary只处理单表。
-
+- 6.6 15:00 发现select *运行不对，查明原因是因为没有维护好col_output
+- 准备支持DATE和TIME类型，仍然使用datapoint，值为int型
+- 6.6上午，新增handle_col管理所有类型分支和cast，删减Quary.cpp代码量
+- 6.6上午，完成存档、读档，每步操作都存一次（采取的是线性读入读出）
 ##附加功能
 - AS
 - DISTINCT
 - ORDER升降序
 
 ## 利用接口
-### `colbase`类接口
+### `Column`类接口
 - `update(int i,T changed)`修改第i个数据点为change
 - `swap(int i,int j)`交换i、j两个位置
 - `select(int i)`输出第i个位置的值，调用`datastruct::output()`
@@ -29,6 +32,8 @@
 - `getvalue(int i)1`获得第i个位置的值
 - `initialdata(T x,int place)`在place位置插入占位数据x（比如0），并设为isnull
 - `insertdata(T x,int place)`真正在place位置赋值x,并将isnull置否
+- `push_back`(int x)添加一个int型值为x的datapoint在data数组最后。
+- `getdata(int i)`直接返回第i个datapoint
 ### `Table`类成员
 - 表格列数size
 - 主键名primarykey

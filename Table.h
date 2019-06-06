@@ -65,6 +65,8 @@ public:
         Column<T>* ptr= dynamic_cast<Column<T>*>(columns[x]);
         return ptr->cmp(pos,k,value);
     }
+    friend void save_database();
+    friend void load_database();
 };
 int* whereclause(Table* table);//处理whereclause语句，返回符合条件的行号
 #endif //CODE_TABLE_H

@@ -45,6 +45,7 @@ public:
     virtual bool getnull(int i)=0;
     string gettype(){return type;}
     string getname(){return cname;}
+    friend void save_database();
 };
 
 
@@ -132,6 +133,8 @@ public:
     int size(){return (int)data.size();}
     friend class Quary;
     friend class Group;
+    friend class handle_col;
+    friend void load_database();
 };
 
 template <typename T>
@@ -141,3 +144,154 @@ Column<T>::~Column(){
 //析构函数类外实现，用于释放datal内存
 #endif //CODE_COLUMN_H
 
+
+
+
+#ifndef HANDLE_COL
+#define HANDLE_COL
+class handle_col
+{
+    Column<int>* c_int1;
+    Column<int>* c_int2;
+    Column<double>* c_double1;
+    Column<double>* c_double2;
+    Column<string>* c_char1;
+    Column<string>* c_char2;
+    string type;
+public:
+//单列，将colbase指针cast成对应类型指针（1号）
+    handle_col(colbase* col){
+        type=col->gettype();
+        if(type=="INT"){
+            c_int1=dynamic_cast<Column<int>*>(col);
+        }
+        else if(type=="DOUBLE"){
+            c_double1=dynamic_cast<Column<double>*>(col);
+        }
+        else if(type=="CHAR"){
+            c_char1=dynamic_cast<Column<string>*>(col);
+        }
+        else{}
+    }
+//单列：调用该列的select，输出数据
+    void select(int i){
+        if(type=="INT"){
+            c_int1->select(i);
+        }
+        else if(type=="DOUBLE"){
+            c_double1->select(i);
+        }
+        else if(type=="CHAR"){
+            c_char1->select(i);
+        }
+        else {}
+    }
+//单列：在int类型的列后加一个元素x（主要用于COUNT，MAX，MIN等函数的数值存储）
+    void push_back(int x){
+        c_int1->push_back(x);
+    }
+//单列：调用该列swap，交换i、j两行
+    void swap(int i,int j){
+        if(type=="INT"){
+            c_int1->swap<int>(i,j);
+        }
+        else if(type=="DOUBLE"){
+            c_double1->swap<double>(i,j);
+        }
+        else if(type=="CHAR"){
+            c_char1->swap<string>(i,j);
+        }
+        else{}
+    }
+    void add_val(string& val){
+        if(type=="INT"){
+            if(val=="NULL"){
+                datapoint<int> temp(0,1);
+                c_int1->data.push_back(temp);
+            }
+            else{
+                int v=stoi(val);
+                datapoint<int> temp(v,0);
+                c_int1->data.push_back(temp);
+            }
+        }
+        else if(type=="DOUBLE"){
+            if(val=="NULL"){
+                datapoint<double> temp(0.0,1);
+                c_double1->data.push_back(temp);
+            }
+            else{
+                int v=stof(val);
+                datapoint<double> temp(v,0);
+                c_double1->data.push_back(temp);
+            }
+        }
+        if(type=="CHAR"){
+            if(val=="NULL"){
+                datapoint<string> temp("/",1);
+                c_char1->data.push_back(temp);
+            }
+            else{
+                datapoint<string> temp(val,0);
+                c_char1->data.push_back(temp);
+            }
+        }
+    }
+//两列，将两个指针分别cast到1、2号指针
+    handle_col(colbase* col1,colbase* col2){
+        type=col1->gettype();
+        if(type=="INT"){
+            c_int1=dynamic_cast<Column<int>*>(col1);
+            c_int2=dynamic_cast<Column<int>*>(col2);
+        }
+        else if(type=="DOUBLE"){
+            c_double1=dynamic_cast<Column<double>*>(col1);
+            c_double2=dynamic_cast<Column<double>*>(col2);
+        }
+        else if(type=="CHAR"){
+            c_char1=dynamic_cast<Column<string>*>(col1);
+            c_char2=dynamic_cast<Column<string>*>(col2);
+        }
+        else{}
+    }
+//两列：从col1第i行拷贝一个data元素到col2的最后
+    void transform_data(int i){
+        if(type=="INT"){
+            c_int2->data.push_back(c_int1->getdata(i));
+        }
+        else if(type=="DOUBLE"){
+            c_double2->data.push_back(c_double1->getdata(i));
+        }
+        else if(type=="CHAR"){
+            c_char2->data.push_back(c_char1->getdata(i));
+        }
+        else{}
+    }
+//两列：比较col1第i1行和col2第i2行的值,k为1、2、3分别代表大于、小于、等于
+    bool compare(int i1,int i2,int k){
+        if(type=="INT"){
+            return c_int1->cmp(i1,k,c_int2->getvalue(i2));
+        }
+        else if(type=="DOUBLE"){
+            return c_double1->cmp(i1,k,c_double2->getvalue(i2));
+        }
+        else if(type=="CHAR"){
+            return c_char1->cmp(i1,k,c_char2->getvalue(i2));
+        }
+        else{return false;}
+    }
+    int size(){
+        if(type=="INT"){
+            return c_int1->size();
+        }
+        else if(type=="DOUBLE"){
+            return c_double1->size();
+        }
+        else if(type=="CHAR"){
+            return c_char1->size();
+        }
+        else{return -1;}
+    }
+};
+
+#endif
