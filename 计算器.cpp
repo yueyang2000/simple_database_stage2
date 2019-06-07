@@ -6,11 +6,13 @@
 #include <iostream>
 using namespace std;
 int main()
-{
-	string expression;
-	getline(cin, expression);
-	calculate cal(expression);
-	cout << cal.getresult() << endl;
+{	
+	while (1) {
+		string expression;
+		getline(cin, expression);
+		calculate cal(expression);
+		cout << cal.getresult() << endl;
+	}
 	return 0;
 }
 

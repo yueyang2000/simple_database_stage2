@@ -3,12 +3,14 @@
 #include<sstream>
 #include<map>
 #include<set>
+#include<vector>
 using namespace std;
 
 class calculate {
 private:
 	string expression;
 	string suff;
+	vector<string> ex;
 	static map<string, int> p;
 	static set<string> fuc;
 public:
@@ -21,15 +23,16 @@ public:
 		}
 		this->expression = expression;
 	}
-		void transition();
-		void form();//正则表达式
-		bool isfuc(string &str) {
+	void setvec();
+	void transition();
+	void form();//正则表达式
+	bool isfuc(string &str) {
 			if (fuc.count(str) != 0) return true;
 			return false;
-		}
-		bool isnumber(string &str) {
+	}
+	bool isnumber(string &str) {
 			if (p.count(str) == 0) return true;
 			return false;
 		}
-		string getresult();
+	string getresult();
 };
