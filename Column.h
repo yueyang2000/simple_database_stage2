@@ -292,6 +292,18 @@ public:
         }
         else{return -1;}
     }
+    string getvalue(int i){//获取字符串版本的第i行数值
+        if(type=="INT"){
+            return to_string(c_int1->getvalue(i));
+        }
+        else if(type=="DOUBLE"){
+            return to_string(c_double1->getvalue(i));
+        }
+        else if(type=="CHAR"){
+            return c_char1->getvalue(i);
+        }
+        else{return "";}
+    }
 };
 
 #endif

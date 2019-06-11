@@ -4,24 +4,25 @@
 #include <fstream>
 #include <algorithm>
 #include "Group.h"
+#include "calculate.h"
+#include <regex>
 void Quary::execute()
 {
     parser();
-    if(use_table.size()==1)
+    
+    if(simple_mode){
+        simple_create_column();
+        
+        get_result();
+    }
+    else if(use_table.size()==1)//单表
     {
         simple_create_column();
         simple_where_clause();
-        if(group.size()==0){
-            simple_insert();
-        }
-        else{
-            get_groupby_id();
-            //debug();
-            group_insert();
-        }
+        get_groupby_id();
+        get_result();
+        sort();
     }
-    //debug();
-    sort();
     output();
     //debug();
 }
@@ -31,21 +32,23 @@ set<string> Quary::keywords                                             //set容
         "TABLES","INT","DOUBLE","CHAR","NOT","NULL","INSERT","INTO",
         "VALUES","DELETE","FROM","UPDATE","SET","SELECT","COLUMNS",
         "DROP","AND","OR","XOR","NOT","OUTFILE","LEFT","RIGHT","ON",
-        "GROUP","BY","ORDER"
+        "GROUP","BY","ORDER",
+        "ABS","SIN","COS","FLOOR","TAN","SQRT","PI","MOD","DIV"     //math functions
     };
 Quary::Quary(string& sql)
 {
     for(auto it=sql.begin();it!=sql.end();it++)                             //遍历str的每个字符，遇到',''('')'';'就转为空格
     {
-        if(*it==','||*it=='('||*it==')'||*it==';')
-        {
+        /*if(*it=='('||*it==')'||*it==','){
             *it=' ';
         }
-        else if(*it=='\'')
+        else */if(*it=='\'')
         {
             *it='\"';
         }
     }
+    regex r(" ?(,) ?");
+    sql=regex_replace(sql,r," $1 ");
     stringstream s(sql);                                                   //用处理后的str初始化一个stringstream
     string temp;                                                            //暂存输入字符串
     while(s>>temp)
@@ -88,6 +91,11 @@ void Quary::debug()
     {
         cout<<col_name[i]<<' ';
     }
+    cout<<endl<<"as:";
+    for(int i=0;i<(int)as.size();i++){
+        if(as[i]!=""){cout<<as[i]<<' ';}
+        else{cout<<"-"<<' ';}
+    }
     cout<<endl<<"result:";
     for(auto it=result.begin();it!=result.end();it++){
         if(it->second!=nullptr){
@@ -105,14 +113,18 @@ void Quary::debug()
     {
         cout<<group[i]<<' ';
     }
+    cout<<endl<<"max_id:"<<max_id;
+    cout<<endl<<"row:"<<row;
     cout<<endl<<"order by:"<<order_by<<endl;
     if(has_function) cout<<"has function\n";
     if(filename!="") cout<<"output:"<<filename<<endl;
+    if(simple_mode) cout<<"simple mode\n";
     cout<<"---DEBUG END---\n";
 }
 
 void Quary::output()
 {
+    if(row==0){return;}
     streambuf* backup;
     ofstream fout;
     if(filename!=""){
@@ -124,7 +136,8 @@ void Quary::output()
     for(int i=0;i<(int)col_name.size();i++)
     {
         if(!col_output[i]) continue;
-        cout<<col_name[i]<<'\t';
+        if(as[i]==""){cout<<col_name[i]<<'\t';}
+        else{cout<<as[i]<<'\t';}
     }
     cout<<endl;
     for(int i=0;i<row;i++)
@@ -146,7 +159,43 @@ void Quary::output()
 void Quary::parser()
 {
     int pos=1;
-        while(words[pos]!="FROM"&&words[pos]!="INTO")
+    while(true){
+        if(words[pos]=="*"){
+            select_all=true;
+            pos++;
+            break;
+        }
+        string cname;
+        while(words[pos]!=","&&words[pos]!="FROM"&&words[pos]!="INTO"&&words[pos]!="AS"&&pos!=words.size()){
+            cname+=words[pos];
+            pos++;
+        }
+        col_name.push_back(cname);
+        col_output.push_back(true);
+        if(cname.find("COUNT")!=string::npos||
+            cname.find("MAX")!=string::npos||
+            cname.find("MIN")!=string::npos){
+                has_function=true;
+            }
+        if(pos==words.size()){
+            as.push_back("");
+            simple_mode=true;
+            return;}//没有FROM
+        else if(words[pos]=="AS"){
+            as.push_back(words[pos+1]);
+            pos+=3;
+            continue;
+        }
+        else{
+            as.push_back("");
+            if(words[pos]=="FROM"||words[pos]=="INTO"){break;}
+            else{//words[pos]==","
+                pos++;
+            }
+        }
+        
+    }
+        /*while(words[pos]!="FROM"&&words[pos]!="INTO")
         {
             if(words[pos]=="*")
             {
@@ -170,13 +219,13 @@ void Quary::parser()
             }
             else
             {
-                as.push_back(temp);
+                as.push_back("");
                 col_name.push_back(temp);
                 col_output.push_back(true);
                 pos++;
             }
-        }
-        if(words[pos]=="INTO")
+        }*/
+        if(words[pos]=="INTO")//into outfile
         {
             filename=string(words[pos+2].begin()+1,words[pos+2].end()-1);
             pos+=3;
@@ -185,11 +234,22 @@ void Quary::parser()
         pos++;
         while(words[pos]!="WHERE"&&words[pos]!="GROUP"&&words[pos]!="ORDER")
         {
+            if(words[pos]==","){pos++;continue;}
             use_table[words[pos]]=whichdb->gettable(words[pos]);
             //cout<<words[pos]<<endl;
             pos++;
             if(pos==words.size())
                 break;
+        }
+        //知道table了，select all 时需要马上把table的所有列名插进去
+        Table* local=use_table.begin()->second;
+        if(select_all)
+        {
+            for(int i=0;i<local->order.size();i++){
+            col_name.push_back(local->order[i]);
+            col_output.push_back(true);
+            as.push_back("");
+            }
         }
         if(words[pos]=="WHERE")
         {
@@ -209,8 +269,9 @@ void Quary::parser()
         if(words[pos]=="GROUP")
         {
             pos+=2;
-            while(keywords.count(words[pos])==0)
+            while(keywords.count(words[pos])==0)//不是关键词，是列名
             {
+                if(words[pos]==","){pos++;continue;}
                 group.push_back(words[pos]);
                 bool found=false;
                 for(int i=0;i<col_name.size();i++){
@@ -248,16 +309,15 @@ void Quary::parser()
 
 void Quary::simple_create_column()
 {
-    Table* local=use_table.begin()->second;
-    if(select_all)
-    {
-
-        for(int i=0;i<local->order.size();i++)
-        {
-            col_name.push_back(local->order[i]);
-            col_output.push_back(true);
+    if(simple_mode){
+        for(int i=0;i<(int)col_name.size();i++){
+            colbase* temp=new Column<string>(col_name[i],1,"CHAR");
+            result[col_name[i]]=temp;
+            //cout<<"create " << col_name[i]<<endl; 
         }
+        return;
     }
+    Table* local=use_table.begin()->second;
     for(int i=0;i<(int)col_name.size();i++)
     {
         colbase* temp;
@@ -265,7 +325,7 @@ void Quary::simple_create_column()
         {
             temp=new Column<int>(col_name[i],1,"INT");
         }
-        else
+        else if(local->columns.count(col_name[i]))//是列名
         {
             string t=local->typemap[col_name[i]];
             if(t=="INT")
@@ -282,66 +342,14 @@ void Quary::simple_create_column()
             }
             else{}
         }
+        else{//是算式
+            temp=new Column<string>(col_name[i],1,"CHAR");
+        }
         result[col_name[i]]=temp;
     }
 }
 
-void Quary::simple_insert()
-{
-    int rnum=use_table.begin()->second->size;
-    //cout<<use_table.begin()->second->tname<<endl;
-    Table* local=use_table.begin()->second;
-    if(group.size()==0)//没有group by
-    {
-        if(has_function)
-        {
-            row=1;
-            for(int lp=0;lp<(int)col_name.size();lp++)
-            {
-                auto it=col_name[lp].begin();
-                while(*it!='(') it++;
-                string cname(it+1,col_name[lp].end()-1);
-                if(col_name[lp][0]=='C')
-                {
-                    int count=0;
-                    if(cname=="*"){
-                        for(int i=0;i<rnum;i++)
-                            if(pick[i]) count++;
-                    }
-                    else{
-                        for(int i=0;i<rnum;i++)
-                        {
-                            if(pick[i]&&!local->columns[cname]->getnull(i))
-                                count++;
-                        }
-                    }
-                    //cout<<result[col_name[lp]]->gettype()<<endl;
-                    Column<int> * ptr=dynamic_cast<Column<int>*> (result[col_name[lp]]);
-                    ptr->push_back(count);
-                }
-                else if(col_name[lp][0]=='M'){}//以后再写MAX和MIN
-            }
-        }
-        else//没有函数
-        {
-            row=0;
-            for(int i=0;i<col_name.size();i++)
-            {
-                handle_col column(local->columns[col_name[i]],result[col_name[i]]);
-                for(int j=0;j<rnum;j++){
-                    if(pick[j]){
-                        column.transform_data(j);row++;
-                    }
-                }
-            }
-            row=row/(int)col_name.size();//最后算出行数
-        }
-    }
-    else
-    {
-        group_insert();
-    }
-}
+
 bool Quary::simple_judge(string& str,int r)
 {
     Table* local=use_table.begin()->second;
@@ -448,7 +456,7 @@ void Quary::simple_where_clause()
         suff += " ";                                //加空格
         s.pop();
     }
-    cout << suff << endl;//后缀式
+    //cout << suff << endl;//后缀式
     pick.clear();                                   //清空原pick
     for (int i = 0; i < rnum; i++) {                //遍历所有的行
         stringstream ss(suff);                      //用转成的后缀式来初始化ss stringstream
@@ -506,6 +514,23 @@ void Quary::simple_where_clause()
 }
 void Quary::get_groupby_id(){
     int rnum=use_table.begin()->second->size;
+    if(group.size()==0){//no group by
+        if(has_function){//有函数，则整体是一组
+            for(int i=0;i<rnum;i++){
+                if(pick[i]){group_id.push_back(0);}
+                else{group_id.push_back(-1);}
+                }
+                max_id=row=1;
+        }
+        else{//没有函数，则每一行是一组
+            for(int i=0;i<rnum;i++){
+                if(pick[i]){group_id.push_back(row);row++;}
+                else{group_id.push_back(-1);}
+                }
+                max_id=row;
+        }
+        return;
+    }
     Table* local=use_table.begin()->second; 
     vector<colbase*> compare;//group的列
     Group groupby;
@@ -530,13 +555,27 @@ void Quary::get_groupby_id(){
     }
     cout<<endl;*/
 }
-void Quary::group_insert()
+void Quary::get_result()
 {
+    if(simple_mode){//纯计算器模式
+        for(int j=0;j<col_name.size();j++){
+            calculate cal(col_name[j]);
+            //cout<<col_name[j]<<endl;
+            string answer=cal.getresult();
+            //cout<<col_name[j]<<'='<<answer<<endl;
+            while(*(answer.end()-1)=='0'){answer.erase(answer.end()-1);}
+            if(*(answer.end()-1)=='.'){answer.erase(answer.end()-1);}
+            auto ptr=dynamic_cast<Column<string>*>(result[col_name[j]]);
+            ptr->push_back(answer);
+        }
+        row=1;
+        return;
+    }
     int rnum=use_table.begin()->second->size;
     Table* local=use_table.begin()->second; 
     for(int id=0;id<max_id;id++){
         for(int j=0;j<col_name.size();j++){
-            if(local->columns.count(col_name[j])){
+            if(local->columns.count(col_name[j])){//是列名
                 for(int i=0;i<rnum;i++){
                     handle_col column(local->columns[col_name[j]],result[col_name[j]]);
                     if(group_id[i]==id){
@@ -545,7 +584,10 @@ void Quary::group_insert()
                     }
                 }
             }
-            else{
+            else if(col_name[j].find("COUNT")!=string::npos||
+                    col_name[j].find("MAX")!=string::npos||
+                    col_name[j].find("MIN")!=string::npos)//是group函数
+                {
                 auto it=col_name[j].begin();
                 while(*it!='(') it++;
                 string cname(it+1,col_name[j].end()-1);
@@ -568,11 +610,39 @@ void Quary::group_insert()
                 }
                 else if(col_name[j][0]=='M'){}
             }
+            else{//是算式
+                for(int i=0;i<rnum;i++){
+                    if(group_id[i]==id){
+                    string formula(col_name[j]);
+                    for(int k=0;k<local->order.size();k++){//列名循环
+                        string oldval=local->order[k];//列名
+                        handle_col column(local->columns[local->order[k]]);
+                        string newval=column.getvalue(i);//列名替换为value
+                        size_t index = formula.find(oldval);
+                        while (index!= formula.npos)
+                        {
+                        formula.erase(index, oldval.size());
+                        formula.insert(index,newval);
+                        index = formula.find(oldval);
+                        }
+                    }
+                    if(formula==col_name[j]){row=max_id=1;}
+                    calculate cal(formula);
+                    string answer=cal.getresult();
+                    //cout<<formula<<'='<<answer<<endl;
+                    while(*(answer.end()-1)=='0'){answer.erase(answer.end()-1);}
+                    if(*(answer.end()-1)=='.'){answer.erase(answer.end()-1);}//去零
+                    auto ptr=dynamic_cast<Column<string>*>(result[col_name[j]]);
+                    ptr->push_back(answer);
+                    break;
+                    }
+                }
+            }
         }
     }
 }
 void Quary::sort(){
-    if(order_by==""){return;}
+    if(order_by==""||simple_mode){return;}
     handle_col column(result[order_by],result[order_by]);
     for(int j=column.size()-1;j>0;j--){
         for(int i=0;i<j;i++){

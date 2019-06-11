@@ -1,12 +1,14 @@
 
 #include "Database.h"
-
+#define LOCAL
+//#define REMOTE
 Database* whichdb;
 string operation;
 stringstream ss;
 map <string,Database*> database;
 void save_database();
 void load_database();
+int server();
 bool get_operation()
 {
     operation="";
@@ -26,6 +28,10 @@ bool get_operation()
 }
 int main(){
     load_database();
+    #ifdef REMOTE
+    server();
+    #endif
+    #ifdef LOCAL
     freopen("/Users/yueyang/yiqunyang/大一下/面向对象的程序设计基础/database/database/input.txt","r",stdin);
     while(get_operation()){
         //在未遇到EOF之前逐行读入字符串，每行是一个指令
@@ -33,8 +39,10 @@ int main(){
         //只有遇到QUIT指令时会直接跳出循环，结束进程
         save_database();
     }
-    save_database();
     fclose(stdin);
+    #endif
+    save_database();
+    
     return 0;
 }
 

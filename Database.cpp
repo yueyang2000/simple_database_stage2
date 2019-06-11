@@ -134,6 +134,18 @@ void usedatabase(){
 }
 
 bool Process_operation(string& operation){//将输⼊规范化，即去掉所有的括号和逗号，各个命令成分之间用空格相隔，使得接下来可以⽅便的使用字符串流来逐个部分地解析。
+    operation.erase(operation.end()-1);//get rid of ;
+    string op;
+    stringstream tmpss;
+    tmpss.clear();tmpss<<operation;tmpss>>op;
+    if(op=="SELECT")
+    {
+        Quary quary(operation);
+        quary.execute();
+        while(ss>>op){}
+        return false;
+    }
+    
     while(operation.find(',')!=string::npos){
         operation[operation.find(',')]=' ';
     }
@@ -144,23 +156,17 @@ bool Process_operation(string& operation){//将输⼊规范化，即去掉所有
         operation[operation.find(')')]=' ';
     }
     //    cout<<operation<<endl;
-    operation.erase(operation.end()-1);//get rid of ;
+    
     //    cout<<operation<<endl;
 
     ss.clear();
     ss<<operation;
     //    cout<<ss.str()<<endl;
-    string op;
+    
     ss>>op;
     stringtoUpper(op);
     //    cout<<op<<endl;
-    if(op=="SELECT")
-    {
-        Quary quary(operation);
-        quary.execute();
-        while(ss>>op){}
-        return false;
-    }
+
     if(op=="CREATE"){
         ss>>op;
         stringtoUpper(op);

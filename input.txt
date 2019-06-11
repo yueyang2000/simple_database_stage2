@@ -1,2 +1,16 @@
+CREATE DATABASE OOP;
 USE OOP;
-SELECT COUNT(*) ,sex FROM animal GROUP BY sex ORDER BY COUNT(*);
+CREATE TABLE animal(id INT NOT NULL,PRIMARY KEY(id),species CHAR NOT NULL,num INT);
+INSERT INTO animal(id,species,num) VALUES(1,"d",1);
+INSERT INTO animal(id,species,num) VALUES(2,"d",1);
+INSERT INTO animal(id,species,num) VALUES(3,"d",2);
+INSERT INTO animal(id,species,num) VALUES(4,"c",4);
+INSERT INTO animal(id,species,num) VALUES(5,'e',8);
+INSERT INTO animal(id,species,num) VALUES(6,'c',16);
+INSERT INTO animal(id,species,num) VALUES(7,'d',32);
+INSERT INTO animal(id,species,num) VALUES(8,'d',64);
+INSERT INTO animal(id,species,num) VALUES(9,'d',64);
+INSERT INTO animal(id,species,num) VALUES(10,'d',64);
+SELECT 1+1,TAN(PI()/4),ABS(-1);
+DROP DATABASE OOP;
+
