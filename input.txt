@@ -1,22 +1,5 @@
 CREATE DATABASE OOP;
 USE OOP;
-CREATE TABLE animal(id INT NOT NULL,PRIMARY KEY(id),species CHAR NOT NULL,sex CHAR);
-INSERT INTO animal(id,species) VALUES(1,"c");
-INSERT INTO animal(id,species,sex) VALUES(2,"d","f");
-INSERT INTO animal(id,species,sex) VALUES(3,"d","f");
-INSERT INTO animal(id,species,sex) VALUES(4,"c","f");
-INSERT INTO animal(id,species,sex) VALUES(5,'e',"m");
-INSERT INTO animal(id,species,sex) VALUES(6,'c','m');
-INSERT INTO animal(id,species,sex) VALUES(7,'d','f');
-INSERT INTO animal(id,species,sex) VALUES(8,'d','f');
-INSERT INTO animal(id,species) VALUES(9,'e');
-INSERT INTO animal(id,species) VALUES(10,'c');
-INSERT INTO animal(id,species) VALUES(11,'e');
-INSERT INTO animal(id,species) VALUES(12,'e');
-INSERT INTO animal(id,species) VALUES(13,'e');
-SELECT species,sex,COUNT(*)
-INTO OUTFILE 'output_file'
-FROM animal
-GROUP BY species,sex
-ORDER BY species;
+CREATE TABLE oop_info(stu_id INT NOT NULL, stu_name CHAR, PRIMARY KEY(stu_id));
+SHOW columns from oop_info;
 DROP DATABASE OOP;

@@ -1,4 +1,3 @@
-#include"pch.h"
 #include"calculate.h"
 #include<iostream>
 #include<cmath>
@@ -12,7 +11,7 @@ map<string, int> calculate::p = { {"+",4},{"-",4},{"*",5},{"/",5},{"%",5},{"DIV"
 void calculate::transition() {
 	stack<string>s;
 	string temp;
-	for(int i=0;i<(int)ex.size();i++) {
+	for (int i = 0; i < (int)ex.size(); i++) {
 		temp = ex[i];
 		if (isnumber(temp)) {
 			suff += temp;
@@ -22,8 +21,8 @@ void calculate::transition() {
 			if (isfuc(temp)) {
 				s.push(temp);
 			}
-			else {//»Áπ˚ «∆’Õ®µƒ‘ÀÀ„∑˚ªÚ£©
-				if (temp == ")") {//»Áπ˚ «£©
+			else {//Â¶ÇÊûúÊòØÊôÆÈÄöÁöÑËøêÁÆóÁ¨¶ÊàñÔºâ
+				if (temp == ")") {//Â¶ÇÊûúÊòØÔºâ
 					while (!isfuc(s.top())) {
 						suff += s.top();
 						suff += " ";
@@ -38,7 +37,7 @@ void calculate::transition() {
 						s.pop();
 					}
 				}
-				else {//º”ºı≥À≥˝≥À≥˝‘ÀÀ„∑˚
+				else {//Âä†Âáè‰πòÈô§‰πòÈô§ËøêÁÆóÁ¨¶
 					if (temp == "+" || temp == "-") {
 						if (i == 0 || !isnumber(ex[i - 1])) {
 							s.push("m" + temp);
@@ -86,7 +85,7 @@ string calculate::getresult() {
 	stack<double> s;
 	string piece;
 	while (ss >> piece) {
-		if (isnumber(piece)) {//»Áπ˚ « ˝◊÷÷±Ω”»Î’ª
+		if (isnumber(piece)) {//Â¶ÇÊûúÊòØÊï∞Â≠óÁõ¥Êé•ÂÖ•Ê†à
 			s.push(atof(piece.c_str()));
 			continue;
 		}
@@ -97,58 +96,58 @@ string calculate::getresult() {
 			s.push(3.14159265358979323846);
 			continue;
 		}
-			if (piece != "NOT"&&!isfuc(piece)&&piece!="m+"&&piece!="m-") {//∂˛‘™‘ÀÀ„∑˚
-				double t2 = s.top(); s.pop();
-				double t1 = s.top(); s.pop();
-				if (piece == "+") {
-					s.push(t1 + t2);
-				}
-				else if (piece == "-") {
-					s.push(t1 - t2);
-				}
-				else if (piece == "*") {
-					s.push(t1*t2);
-				}
-				else if (piece == "/"||piece=="DIV") {
-					if (t2 == 0) {
-						return "NULL";
-					}
-					else {
-						s.push(t1 / t2);
-					}
-				}
-				else if (piece == "%" || piece == "MOD") {
-					if (t2 == 0) {
-						return "NULL";
-					}
-					else {
-						s.push((int)t1 % (int)t2);
-					}
-				}
-				else if (piece == "OR") s.push((double)(t1 || t2));
-				else if (piece == "XOR") {
-					if ((!t1&&t2) || (t1 && !t2)) { s.push(1.0); }
-					else s.push(0.0);
-				}
-				else if (piece == "AND") s.push(t1&&t2);
+		if (piece != "NOT" && !isfuc(piece) && piece != "m+"&&piece != "m-") {//‰∫åÂÖÉËøêÁÆóÁ¨¶
+			double t2 = s.top(); s.pop();
+			double t1 = s.top(); s.pop();
+			if (piece == "+") {
+				s.push(t1 + t2);
 			}
-			else {//“ª‘™‘ÀÀ„∑˚
-				double t1 = s.top();
-				s.pop();
-				if (piece == "m+") s.push(t1);
-				else if (piece == "m-") s.push(-t1);
-				else if (piece == "NOT") {
-					s.push(!t1);
-				}
-				else if (piece == "ABS(") s.push(abs(t1));
-				else if (piece == "SIN(") s.push(sin(t1));
-				else if (piece == "COS(") s.push(cos(t1));
-				else if (piece == "TAN(") s.push(tan(t1));
-				else if (piece == "EXP(") s.push(exp(t1));
-				else if (piece == "SQRT(") s.push(sqrt(t1));
-				else if (piece == "FLOOR(") s.push(floor(t1));
+			else if (piece == "-") {
+				s.push(t1 - t2);
 			}
-		
+			else if (piece == "*") {
+				s.push(t1*t2);
+			}
+			else if (piece == "/" || piece == "DIV") {
+				if (t2 == 0) {
+					return "NULL";
+				}
+				else {
+					s.push(t1 / t2);
+				}
+			}
+			else if (piece == "%" || piece == "MOD") {
+				if (t2 == 0) {
+					return "NULL";
+				}
+				else {
+					s.push((int)t1 % (int)t2);
+				}
+			}
+			else if (piece == "OR") s.push((double)(t1 || t2));
+			else if (piece == "XOR") {
+				if ((!t1&&t2) || (t1 && !t2)) { s.push(1.0); }
+				else s.push(0.0);
+			}
+			else if (piece == "AND") s.push(t1&&t2);
+		}
+		else {//‰∏ÄÂÖÉËøêÁÆóÁ¨¶
+			double t1 = s.top();
+			s.pop();
+			if (piece == "m+") s.push(t1);
+			else if (piece == "m-") s.push(-t1);
+			else if (piece == "NOT") {
+				s.push(!t1);
+			}
+			else if (piece == "ABS(") s.push(abs(t1));
+			else if (piece == "SIN(") s.push(sin(t1));
+			else if (piece == "COS(") s.push(cos(t1));
+			else if (piece == "TAN(") s.push(tan(t1));
+			else if (piece == "EXP(") s.push(exp(t1));
+			else if (piece == "SQRT(") s.push(sqrt(t1));
+			else if (piece == "FLOOR(") s.push(floor(t1));
+		}
+
 	}
 	double res = s.top();
 	s.pop();
@@ -161,7 +160,7 @@ void calculate::form() {
 	expression = regex_replace(expression, r, " $1 ");
 	r = " ?((ABS) | (SIN) | (EXP) | (COS) | (TAN) | (SQRT) | (FLOOR)|(PI)) ?";
 	expression = regex_replace(expression, r, " $1 ");
-	
+
 	r = "(^ +)|( +$)";
 	expression = regex_replace(expression, r, "");
 	r = " +";

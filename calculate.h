@@ -1,3 +1,4 @@
+
 #pragma once
 #include<string>
 #include<sstream>
@@ -25,14 +26,14 @@ public:
 	}
 	void setvec();
 	void transition();
-	void form();//正则表达式
+	void form();//脮媒脭貌卤铆麓茂脢陆
 	bool isfuc(string &str) {
-			if (fuc.count(str) != 0) return true;
-			return false;
+		if (fuc.count(str) != 0) return true;
+		return false;
 	}
 	bool isnumber(string &str) {
-			if (p.count(str) == 0) return true;
-			return false;
-		}
+		if (p.count(str) == 0) return true;
+		return false;
+	}
 	string getresult();
 };
