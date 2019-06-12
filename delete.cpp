@@ -54,6 +54,14 @@
 							Column<string> *ptr = dynamic_cast<Column<string> *>(it->second);
 							ptr->deletedata(i);
 						}
+						else if (typemap[it->first] == "DATE") {
+							Column<string> *ptr = dynamic_cast<Column<string> *>(it->second);
+							ptr->deletedata(i);
+						}
+						else if (typemap[it->first] == "TIME") {
+							Column<string> *ptr = dynamic_cast<Column<string> *>(it->second);
+							ptr->deletedata(i);
+						}
 					}
 					else{
 						if (typemap[it->first] == "INT") {
@@ -69,6 +77,18 @@
 						} else if (typemap[it->first] == "CHAR") {
 							Column<string> *ptr = dynamic_cast<Column<string> *>(it->second);
 							string k=ptr->getvalue(i);
+							primary_char.erase(k);
+							ptr->deletedata(i);
+						}
+						else if (typemap[it->first] == "DATE") {
+							Column<string> *ptr = dynamic_cast<Column<string> *>(it->second);
+							string k = ptr->getvalue(i);
+							primary_char.erase(k);
+							ptr->deletedata(i);
+						}
+						else if (typemap[it->first] == "TIME") {
+							Column<string> *ptr = dynamic_cast<Column<string> *>(it->second);
+							string k = ptr->getvalue(i);
 							primary_char.erase(k);
 							ptr->deletedata(i);
 						}

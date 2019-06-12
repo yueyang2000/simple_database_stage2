@@ -19,21 +19,21 @@ extern map<string, Database*> database;
 extern stringstream ss;
 //字符串流的对象
 template <typename A>
-struct datapoint{
-    A val;
-    //根据实际类型存储数据
-    bool isnull;
-    //判断该点位置是否已输入数据
+struct datapoint {
+	A val;
+	//根据实际类型存储数据
+	bool isnull;
+	//判断该点位置是否已输入数据
 public:
-    datapoint<A>(A x,bool y):val(x),isnull(y){};
-    //构造函数，根据实际类型构造对象
-    void output()
-    //根据此处是否有值决定输出的是NULL还是实际值
+	datapoint<A>(A x, bool y) : val(x), isnull(y) {};
+	//构造函数，根据实际类型构造对象
+	void output()
+		//根据此处是否有值决定输出的是NULL还是实际值
 	{
-		if(isnull)
-			cout<<"NULL";
+		if (isnull)
+			cout << "NULL";
 		else
-			cout<<val;
+			cout << val;
 		return;
 	}
 };
