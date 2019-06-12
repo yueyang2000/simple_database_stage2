@@ -24,6 +24,14 @@ public:
 		{
 			temp = new Column<double>(cname, 0, "DOUBLE");
 		}
+		else if (t == "DATE")
+		{
+			temp = new Column<string>(cname, 0, "DATE");
+		}
+		else if (t == "TIME")
+		{
+			temp = new Column<string>(cname, 0, "TIME");
+		}
 		else {}
 		record.push_back(temp);
 	}
@@ -54,7 +62,7 @@ public:
 						break;
 					}
 				}
-				else if (ptr1->gettype() == "CHAR") {
+				else if (ptr1->gettype() == "CHAR"|| ptr1->gettype() == "DATE"|| ptr1->gettype() == "TIME") {
 					Column<string>* cp1 = dynamic_cast<Column<string>*>(ptr1);
 					Column<string>* cp2 = dynamic_cast<Column<string>*>(ptr2);
 					if (cp1->getvalue(i) != cp2->getvalue(r)) {
@@ -81,7 +89,7 @@ public:
 				auto cp2 = dynamic_cast<Column<double>*>(group[j]);
 				cp1->data.push_back(cp2->getdata(r));
 			}
-			else if (record[j]->gettype() == "CHAR") {
+			else if (record[j]->gettype() == "CHAR"|| record[j]->gettype() == "DATE"|| record[j]->gettype() == "TIME") {
 				auto cp1 = dynamic_cast<Column<string>*>(record[j]);
 				auto cp2 = dynamic_cast<Column<string>*>(group[j]);
 				cp1->data.push_back(cp2->getdata(r));

@@ -27,21 +27,24 @@ bool get_operation()
 	return true;
 }
 int main() {
-	load_database();
+	//load_database();
 #ifdef REMOTE
 	server();
 #endif
 #ifdef LOCAL
-	freopen("/Users/yueyang/yiqunyang/大一下/面向对象的程序设计基础/database/database/input.txt", "r", stdin);
+	//FILE *stream;
+	freopen("input.txt", "r", stdin);
+#endif
 	while (get_operation()) {
 		//在未遇到EOF之前逐行读入字符串，每行是一个指令
 		if (Process_operation(operation))break;
 		//只有遇到QUIT指令时会直接跳出循环，结束进程
-		save_database();
+		//save_database();
 	}
+#ifdef LOCAL
 	fclose(stdin);
 #endif
-	save_database();
+	//save_database();
 
 	return 0;
 }

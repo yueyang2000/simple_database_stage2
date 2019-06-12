@@ -35,6 +35,16 @@ void Table::swap(Table*, int i1, int i2)
 			Column<string>* ptr = dynamic_cast<Column<string>*>(columns[name]);
 			ptr->swap<string>(i1, i2);
 		}
+		else if (type == "DATE")
+		{
+			Column<string>* ptr = dynamic_cast<Column<string>*>(columns[name]);
+			ptr->swap<string>(i1, i2);
+		}
+		else if (type == "TIME")
+		{
+			Column<string>* ptr = dynamic_cast<Column<string>*>(columns[name]);
+			ptr->swap<string>(i1, i2);
+		}
 		it++;
 	}
 	return;
@@ -109,6 +119,22 @@ void Table::update()
 				return;
 			}
 		}
+		else if (type == "DATE") {
+			string k(changed.begin() + 1, changed.end() - 1);
+			if (primary_char.count(k)) {
+				cout << "Alert: " << k << " as a primarykey has existed." << endl;
+				delete[] outcome;
+				return;
+			}
+		}
+		else if (type == "TIME") {
+			string k(changed.begin() + 1, changed.end() - 1);
+			if (primary_char.count(k)) {
+				cout << "Alert: " << k << " as a primarykey has existed." << endl;
+				delete[] outcome;
+				return;
+			}
+		}
 		map<string, colbase*>::iterator it;
 		int oriplace = 0;
 		int count = 0;
@@ -133,6 +159,14 @@ void Table::update()
 				primary_double[k] = 1;
 			}
 			else if (type == "CHAR") {
+				string k(changed.begin() + 1, changed.end() - 1);
+				primary_char[k] = 1;
+			}
+			else if (type == "DATE") {
+				string k(changed.begin() + 1, changed.end() - 1);
+				primary_char[k] = 1;
+			}
+			else if (type == "TIME") {
 				string k(changed.begin() + 1, changed.end() - 1);
 				primary_char[k] = 1;
 			}
@@ -254,6 +288,80 @@ void Table::update()
 				}
 			}
 		}
+		else if (type == "DATE")
+		{
+		string tmp(changed.begin() + 1, changed.end() - 1);
+		Column<string>* ptr = dynamic_cast<Column<string>*>(columns[name]);
+		string k = ptr->getvalue(oriplace);
+		primary_char.erase(k);
+		if (ptr->cmp(oriplace, 1, changed))
+		{
+			for (int i = 0; i < oriplace; i++)
+			{
+				if (ptr->cmp(oriplace - i - 1, 1, tmp))
+				{
+					swap(this, oriplace - i - 1, oriplace - i);
+					int temp = outcome[oriplace - i - 1];
+					outcome[oriplace - i - 1] = outcome[oriplace - i];
+					outcome[oriplace - i] = temp;
+				}
+				else
+					break;
+			}
+		}
+		else
+		{
+			for (int i = 0; i < size - oriplace - 1; i++)
+			{
+				if (ptr->cmp(oriplace + i + 1, 2, tmp))
+				{
+					swap(this, oriplace + i + 1, oriplace + i);
+					int temp = outcome[oriplace + i + 1];
+					outcome[oriplace + i + 1] = outcome[oriplace + i];
+					outcome[oriplace + i] = temp;
+				}
+				else
+					break;
+			}
+		}
+		}
+		else if (type == "TIME")
+		{
+		string tmp(changed.begin() + 1, changed.end() - 1);
+		Column<string>* ptr = dynamic_cast<Column<string>*>(columns[name]);
+		string k = ptr->getvalue(oriplace);
+		primary_char.erase(k);
+		if (ptr->cmp(oriplace, 1, changed))
+		{
+			for (int i = 0; i < oriplace; i++)
+			{
+				if (ptr->cmp(oriplace - i - 1, 1, tmp))
+				{
+					swap(this, oriplace - i - 1, oriplace - i);
+					int temp = outcome[oriplace - i - 1];
+					outcome[oriplace - i - 1] = outcome[oriplace - i];
+					outcome[oriplace - i] = temp;
+				}
+				else
+					break;
+			}
+		}
+		else
+		{
+			for (int i = 0; i < size - oriplace - 1; i++)
+			{
+				if (ptr->cmp(oriplace + i + 1, 2, tmp))
+				{
+					swap(this, oriplace + i + 1, oriplace + i);
+					int temp = outcome[oriplace + i + 1];
+					outcome[oriplace + i + 1] = outcome[oriplace + i];
+					outcome[oriplace + i] = temp;
+				}
+				else
+					break;
+			}
+		}
+		}
 	}
 	//		cout<<"\n"<<type<<"\n";
 	if (type == "INT")//按照上面计算得到的交换位置将行交换后更新值
@@ -279,6 +387,30 @@ void Table::update()
 		}
 	}
 	else if (type == "CHAR")
+	{
+		Column<string>* ptr = dynamic_cast<Column<string>*>(columns[name]);
+		//			cout<<"\nchar\n";		
+		for (int i = 0; i < size; i++)
+		{
+			//				cout<<changed<<endl;
+			string change(changed.begin() + 1, changed.end() - 1);
+			if (outcome[i])
+				ptr->update(i, change);
+		}
+	}
+	else if (type == "DATE")
+	{
+		Column<string>* ptr = dynamic_cast<Column<string>*>(columns[name]);
+		//			cout<<"\nchar\n";		
+		for (int i = 0; i < size; i++)
+		{
+			//				cout<<changed<<endl;
+			string change(changed.begin() + 1, changed.end() - 1);
+			if (outcome[i])
+				ptr->update(i, change);
+		}
+	}
+	else if (type == "TIME")
 	{
 		Column<string>* ptr = dynamic_cast<Column<string>*>(columns[name]);
 		//			cout<<"\nchar\n";		

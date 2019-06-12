@@ -33,7 +33,8 @@ set<string> Quary::keywords                                             //set容
 	"VALUES","DELETE","FROM","UPDATE","SET","SELECT","COLUMNS",
 	"DROP","AND","OR","XOR","NOT","OUTFILE","LEFT","RIGHT","ON",
 	"GROUP","BY","ORDER",
-	"ABS","SIN","COS","FLOOR","TAN","SQRT","PI","MOD","DIV"     //math functions
+	"ABS","SIN","COS","FLOOR","TAN","SQRT","PI","MOD","DIV" //math functions
+	"DATE","TIME"
 };
 Quary::Quary(string& sql)
 {
@@ -166,7 +167,7 @@ void Quary::parser()
 			break;
 		}
 		string cname;
-		while (words[pos] != ","&&words[pos] != "FROM"&&words[pos] != "INTO"&&words[pos] != "AS"&&pos != words.size()) {
+		while (pos != words.size()&&words[pos] != ","&&words[pos] != "FROM"&&words[pos] != "INTO"&&words[pos] != "AS") {
 			cname += words[pos];
 			pos++;
 		}
@@ -233,14 +234,12 @@ void Quary::parser()
 	}
 	//这个时候读到了from
 	pos++;
-	while (words[pos] != "WHERE"&&words[pos] != "GROUP"&&words[pos] != "ORDER")
+	while (pos != words.size()&&words[pos] != "WHERE"&&words[pos] != "GROUP"&&words[pos] != "ORDER")
 	{
 		if (words[pos] == ",") { pos++; continue; }
 		use_table[words[pos]] = whichdb->gettable(words[pos]);
 		//cout<<words[pos]<<endl;
 		pos++;
-		if (pos == words.size())
-			break;
 	}
 	//知道table了，select all 时需要马上把table的所有列名插进去
 	Table* local = use_table.begin()->second;
@@ -252,25 +251,21 @@ void Quary::parser()
 			as.push_back("");
 		}
 	}
-	if (words[pos] == "WHERE")
+	if (pos != words.size()&&words[pos] == "WHERE")
 	{
 		static set<string> logic{ "AND","OR","NOT","XOR" };
 		where_begin = pos + 1;
 		pos++;
-		while (keywords.count(words[pos]) == 0 || logic.count(words[pos]) != 0)
+		while (pos != words.size() && (keywords.count(words[pos]) == 0 || logic.count(words[pos]) != 0))
 		{
 			pos++;
-			if (pos == words.size())
-			{
-				break;
-			}
 		}
 		where_end = pos;
 	}
-	if (words[pos] == "GROUP")
+	if (pos != words.size() && words[pos] == "GROUP")
 	{
 		pos += 2;
-		while (keywords.count(words[pos]) == 0)//不是关键词，是列名
+		while (pos != words.size() && keywords.count(words[pos]) == 0)//不是关键词，是列名
 		{
 			if (words[pos] == ",") { pos++; continue; }
 			group.push_back(words[pos]);
@@ -283,19 +278,16 @@ void Quary::parser()
 				col_output.push_back(false);
 			}
 			pos++;
-			if (pos == words.size()) {
-				break;
-			}
 		}
 	}
-	if (words[pos] == "ORDER")
+	if (pos != words.size() && words[pos] == "ORDER")
 	{
 		pos += 2;
 		order_by = words[pos];
-		string temp = "(" + words[pos + 1] + ")";
+		/*string temp = "(" + words[pos + 1] + ")";
 		if (order_by == "COUNT") {
 			order_by += temp;
-		}
+		}*/
 		bool found = false;
 		for (int i = 0; i < col_name.size(); i++) {
 			if (col_name[i] == order_by) { found = true; break; }
@@ -305,7 +297,7 @@ void Quary::parser()
 			col_output.push_back(false);
 		}
 	}
-	cout << "parser succeed!\n";
+	//cout << "parser succeed!\n";
 }
 
 void Quary::simple_create_column()
@@ -340,6 +332,14 @@ void Quary::simple_create_column()
 			else if (t == "DOUBLE")
 			{
 				temp = new Column<double>(col_name[i], 0, "DOUBLE");
+			}
+			else if (t == "DATE")
+			{
+				temp = new Column<string>(col_name[i], 0, "DATE");
+			}
+			else if (t == "TIME")
+			{
+				temp = new Column<string>(col_name[i], 0, "TIME");
 			}
 			else {}
 		}
@@ -397,7 +397,7 @@ bool Quary::simple_judge(string& str, int r)
 			else return false;
 		}
 	}
-	else if (local->typemap[name] == "CHAR") {
+	else if (local->typemap[name] == "CHAR"||local->typemap[name]=="DATE"||local->typemap[name]=="TIME") {
 		string v;
 		ss >> v;
 		string value(v.begin() + 1, v.end() - 1);
@@ -431,7 +431,7 @@ void Quary::simple_where_clause()
 		return;
 	}
 	string suff;                                    //suff为转成的后缀式
-	map<string, int> p = { {"NOT",3},{"AND",2},{"XOR",1},{"OR",0} };     //map p中AND对应1，OR对应0
+	map<string, int> p = { {"NOT",3},{"AND",2},{"XOR",1},{"OR",1} };     //map p中AND对应1，OR对应0
 	stack<string> s;                                //转后缀式时用到的栈s
 	for (int i = b; i != e; i++) {  //从where后的第一个词开始遍历语句中的每一个词
 		if (p.count(words[i])) {    //假如遇到了AND或OR

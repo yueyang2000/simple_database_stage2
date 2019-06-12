@@ -31,7 +31,9 @@ public:
 		cout << cname;
 		if (type == "INT")cout << '\t' << "int(11)";//输出类型
 		else if (type == "CHAR")cout << '\t' << "char(1)";
-		else cout << '\t' << "double";
+		else if (type == "DOUBLE")cout << '\t' << "double";
+		else if (type == "DATE")cout << '\t' << "date";
+		else if (type == "TIME")cout << '\t' << "time";
 		if (notnull)cout << '\t' << "NO";//输出notnull
 		else cout << '\t' << "YES";
 		if (primarykey) cout << '\t' << "PRI";//输出是否j主键
@@ -171,7 +173,13 @@ public:
 		else if (type == "CHAR") {
 			c_char1 = dynamic_cast<Column<string>*>(col);
 		}
-		else {}
+		else if (type == "DATE") {
+			c_char1 = dynamic_cast<Column<string>*>(col);
+		}
+		else if (type == "TIME") {
+			c_char1 = dynamic_cast<Column<string>*>(col);
+		}
+		else{}
 	}
 	//单列：调用该列的select，输出数据
 	void select(int i) {
@@ -184,7 +192,13 @@ public:
 		else if (type == "CHAR") {
 			c_char1->select(i);
 		}
-		else {}
+		else if (type == "DATE") {
+			c_char1->select(i);
+		}
+		else if (type == "TIME") {
+			c_char1->select(i);
+		}
+		else{}
 	}
 	//单列：在int类型的列后加一个元素x（主要用于COUNT，MAX，MIN等函数的数值存储）
 	void push_back(int x) {
@@ -199,6 +213,12 @@ public:
 			c_double1->swap<double>(i, j);
 		}
 		else if (type == "CHAR") {
+			c_char1->swap<string>(i, j);
+		}
+		else if (type == "DATE") {
+			c_char1->swap<string>(i, j);
+		}
+		else if (type == "TIME") {
 			c_char1->swap<string>(i, j);
 		}
 		else {}
@@ -226,7 +246,27 @@ public:
 				c_double1->data.push_back(temp);
 			}
 		}
-		if (type == "CHAR") {
+		else if (type == "CHAR") {
+			if (val == "NULL") {
+				datapoint<string> temp("/", 1);
+				c_char1->data.push_back(temp);
+			}
+			else {
+				datapoint<string> temp(val, 0);
+				c_char1->data.push_back(temp);
+			}
+		}
+		else if (type == "DATE") {
+			if (val == "NULL") {
+				datapoint<string> temp("/", 1);
+				c_char1->data.push_back(temp);
+			}
+			else {
+				datapoint<string> temp(val, 0);
+				c_char1->data.push_back(temp);
+			}
+		}
+		else if (type == "TIME") {
 			if (val == "NULL") {
 				datapoint<string> temp("/", 1);
 				c_char1->data.push_back(temp);
@@ -252,6 +292,14 @@ public:
 			c_char1 = dynamic_cast<Column<string>*>(col1);
 			c_char2 = dynamic_cast<Column<string>*>(col2);
 		}
+		else if (type == "DATE") {
+			c_char1 = dynamic_cast<Column<string>*>(col1);
+			c_char2 = dynamic_cast<Column<string>*>(col2);
+		}
+		else if (type == "TIME") {
+			c_char1 = dynamic_cast<Column<string>*>(col1);
+			c_char2 = dynamic_cast<Column<string>*>(col2);
+		}
 		else {}
 	}
 	//两列：从col1第i行拷贝一个data元素到col2的最后
@@ -263,6 +311,12 @@ public:
 			c_double2->data.push_back(c_double1->getdata(i));
 		}
 		else if (type == "CHAR") {
+			c_char2->data.push_back(c_char1->getdata(i));
+		}
+		else if (type == "DATE") {
+			c_char2->data.push_back(c_char1->getdata(i));
+		}
+		else if (type == "TIME") {
 			c_char2->data.push_back(c_char1->getdata(i));
 		}
 		else {}
@@ -278,6 +332,12 @@ public:
 		else if (type == "CHAR") {
 			return c_char1->cmp(i1, k, c_char2->getvalue(i2));
 		}
+		else if (type == "DATE") {
+			return c_char1->cmp(i1, k, c_char2->getvalue(i2));
+		}
+		else if (type == "TIME") {
+			return c_char1->cmp(i1, k, c_char2->getvalue(i2));
+		}
 		else { return false; }
 	}
 	int size() {
@@ -290,6 +350,12 @@ public:
 		else if (type == "CHAR") {
 			return c_char1->size();
 		}
+		else if (type == "DATE") {
+			return c_char1->size();
+		}
+		else if (type == "TIME") {
+			return c_char1->size();
+		}
 		else { return -1; }
 	}
 	string getvalue(int i) {//获取字符串版本的第i行数值
@@ -300,6 +366,12 @@ public:
 			return to_string(c_double1->getvalue(i));
 		}
 		else if (type == "CHAR") {
+			return c_char1->getvalue(i);
+		}
+		else if (type == "DATE") {
+			return c_char1->getvalue(i);
+		}
+		else if (type == "TIME") {
 			return c_char1->getvalue(i);
 		}
 		else { return ""; }

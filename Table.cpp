@@ -48,6 +48,20 @@ void Table::createcolumn(string ccname) {//创建新列的函数
 			columns[ccname] = ptr;
 			typemap[ccname] = "DOUBLE";
 		}
+		else if (ttype == "DATE") {
+			colbase* ptr = new Column<string>(ccname, true, "DATE");
+			//            cout<<ccname<<' '<<ttype<<" NOT NULL"<<endl;
+			//            stringtoUpper(ccname);
+			columns[ccname] = ptr;
+			typemap[ccname] = "DATE";
+		}
+		else if (ttype == "TIME") {
+			colbase* ptr = new Column<string>(ccname, true, "TIME");
+			//            cout<<ccname<<' '<<ttype<<" NOT NULL"<<endl;
+			//            stringtoUpper(ccname);
+			columns[ccname] = ptr;
+			typemap[ccname] = "TIME";
+		}
 		else {//当类型是当前不支持的时候，报告错误
 			cout << "Alert: type of " << ccname << " is not acceptable." << endl;
 			order.pop_back();//将order中加入的错误代码删除
@@ -72,6 +86,16 @@ void Table::createcolumn(string ccname) {//创建新列的函数
 			colbase* ptr = new Column<double>(ccname, false, "DOUBLE");
 			columns[ccname] = ptr;
 			typemap[ccname] = "DOUBLE";
+		}
+		else if (ttype == "DATE") {
+			colbase* ptr = new Column<string>(ccname, false, "DATE");
+			columns[ccname] = ptr;
+			typemap[ccname] = "DATE";
+		}
+		else if (ttype == "TIME") {
+			colbase* ptr = new Column<string>(ccname, false, "TIME");
+			columns[ccname] = ptr;
+			typemap[ccname] = "TIME";
 		}
 		else {
 			cout << "Alert: type of " << ccname << " is not acceptable." << endl;
@@ -185,7 +209,27 @@ void Table::inserttocolumn() {//新建行的操作，首先找到插入位置，
 			primary_double[k] = 1;
 		}
 	}
-	else {
+	else if (type=="CHAR") {
+		string k(value[pripos].begin() + 1, value[pripos].end() - 1);
+		if (primary_char.count(k)) {
+			cout << k << " as primary key has existed." << endl;
+			return;
+		}
+		else {
+			primary_char[k] = 1;
+		}
+	}
+	else if (type == "DATE") {
+		string k(value[pripos].begin() + 1, value[pripos].end() - 1);
+		if (primary_char.count(k)) {
+			cout << k << " as primary key has existed." << endl;
+			return;
+		}
+		else {
+			primary_char[k] = 1;
+		}
+	}
+	else if (type == "TIME") {
 		string k(value[pripos].begin() + 1, value[pripos].end() - 1);
 		if (primary_char.count(k)) {
 			cout << k << " as primary key has existed." << endl;
@@ -231,6 +275,28 @@ void Table::inserttocolumn() {//新建行的操作，首先找到插入位置，
 			loc = i + 1;
 		}
 	}
+	else if (type == "DATE") {
+		string s(value[pripos].begin() + 1, value[pripos].end() - 1);
+		for (int i = 0; i < size; i++) {
+			Column<string>* temp = dynamic_cast<Column<string>*> (columns[attrname[pripos]]);
+			if (temp->cmp(i, 1, s) || temp->cmp(i, 3, s)) {
+				loc = i;
+				break;
+			}
+			loc = i + 1;
+		}
+	}
+	else if (type == "TIME") {
+		string s(value[pripos].begin() + 1, value[pripos].end() - 1);
+		for (int i = 0; i < size; i++) {
+			Column<string>* temp = dynamic_cast<Column<string>*> (columns[attrname[pripos]]);
+			if (temp->cmp(i, 1, s) || temp->cmp(i, 3, s)) {
+				loc = i;
+				break;
+			}
+			loc = i + 1;
+		}
+	}
 	//    cout<<loc<<endl;
 	map<string, colbase*>::iterator iter;
 	iter = columns.begin();
@@ -244,9 +310,19 @@ void Table::inserttocolumn() {//新建行的操作，首先找到插入位置，
 			Column<int>* temp = dynamic_cast<Column<int>*>(iter->second);
 			temp->initialdata(0, loc);
 		}
-		else {
+		else if (typemap[iter->first] == "DOUBLE") {
 			Column<double>* temp = dynamic_cast<Column<double>*>(iter->second);
 			temp->initialdata(0, loc);
+		}
+		else if (typemap[iter->first] == "DATE") {
+			Column<string>* temp = dynamic_cast<Column<string>*>(iter->second);
+			string value(iter->first.begin() + 1, iter->first.end() - 1);
+			temp->initialdata("/", loc);
+		}
+		else if (typemap[iter->first] == "TIME") {
+			Column<string>* temp = dynamic_cast<Column<string>*>(iter->second);
+			string value(iter->first.begin() + 1, iter->first.end() - 1);
+			temp->initialdata("/", loc);
 		}
 		iter++;
 	}
@@ -263,11 +339,21 @@ void Table::inserttocolumn() {//新建行的操作，首先找到插入位置，
 			a = stoi(attrvalue);
 			temp->insertdata(a, loc);
 		}
-		else {
+		else if (typemap[attrname[i]] == "DOUBLE") {
 			Column<double>* temp = dynamic_cast<Column<double>*>(columns[attrname[i]]);
 			double a;
 			a = stod(attrvalue);
 			temp->insertdata(a, loc);
+		}
+		else if (typemap[attrname[i]] == "DATE") {
+			Column<string>* temp = dynamic_cast<Column<string>*>(columns[attrname[i]]);
+			string value(attrvalue.begin() + 1, attrvalue.end() - 1);
+			temp->insertdata(value, loc);
+		}
+		else if (typemap[attrname[i]] == "TIME") {
+			Column<string>* temp = dynamic_cast<Column<string>*>(columns[attrname[i]]);
+			string value(attrvalue.begin() + 1, attrvalue.end() - 1);
+			temp->insertdata(value, loc);
 		}
 	}
 	size++;//扩行完成

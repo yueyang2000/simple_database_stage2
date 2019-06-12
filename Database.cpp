@@ -139,7 +139,7 @@ bool Process_operation(string& operation) {//将输⼊规范化，即去掉所�
 	string op;
 	stringstream tmpss;
 	tmpss.clear(); tmpss << operation; tmpss >> op;
-	if (op == "SELECT")
+	if (op == "SELECT"||op=="select")
 	{
 		Quary quary(operation);
 		quary.execute();

@@ -61,7 +61,27 @@ void Table::loadtocolumn(string& filename)
 				primary_double[k] = 1;
 			}
 		}
-		else {
+		else if (type == "CHAR") {
+			string k(value[pripos].begin() + 1, value[pripos].end() - 1);
+			if (primary_char.count(k)) {
+				cout << k << " as primary key has existed." << endl;
+				return;
+			}
+			else {
+				primary_char[k] = 1;
+			}
+		}
+		else if (type == "DATE") {
+			string k(value[pripos].begin() + 1, value[pripos].end() - 1);
+			if (primary_char.count(k)) {
+				cout << k << " as primary key has existed." << endl;
+				return;
+			}
+			else {
+				primary_char[k] = 1;
+			}
+		}
+		else if (type == "TIME") {
 			string k(value[pripos].begin() + 1, value[pripos].end() - 1);
 			if (primary_char.count(k)) {
 				cout << k << " as primary key has existed." << endl;
@@ -107,6 +127,28 @@ void Table::loadtocolumn(string& filename)
 				loc = i + 1;
 			}
 		}
+		else if (type == "DATE") {
+			string s(value[pripos].begin() + 1, value[pripos].end() - 1);
+			for (int i = 0; i < size; i++) {
+				Column<string>* temp = dynamic_cast<Column<string>*> (columns[attrname[pripos]]);
+				if (temp->cmp(i, 1, s) || temp->cmp(i, 3, s)) {
+					loc = i;
+					break;
+				}
+				loc = i + 1;
+			}
+		}
+		else if (type == "TIME") {
+			string s(value[pripos].begin() + 1, value[pripos].end() - 1);
+			for (int i = 0; i < size; i++) {
+				Column<string>* temp = dynamic_cast<Column<string>*> (columns[attrname[pripos]]);
+				if (temp->cmp(i, 1, s) || temp->cmp(i, 3, s)) {
+					loc = i;
+					break;
+				}
+				loc = i + 1;
+			}
+		}
 		//   cout<<loc<<endl;
 		map<string, colbase*>::iterator iter;
 		iter = columns.begin();
@@ -120,9 +162,19 @@ void Table::loadtocolumn(string& filename)
 				Column<int>* temp = dynamic_cast<Column<int>*>(iter->second);
 				temp->initialdata(0, loc);
 			}
-			else {
+			else if (typemap[iter->first] == "DOUBLE") {
 				Column<double>* temp = dynamic_cast<Column<double>*>(iter->second);
 				temp->initialdata(0, loc);
+			}
+			else if (typemap[iter->first] == "DATE") {
+				Column<string>* temp = dynamic_cast<Column<string>*>(iter->second);
+				string value(iter->first.begin() + 1, iter->first.end() - 1);
+				temp->initialdata("/", loc);
+			}
+			else if (typemap[iter->first] == "TIME") {
+				Column<string>* temp = dynamic_cast<Column<string>*>(iter->second);
+				string value(iter->first.begin() + 1, iter->first.end() - 1);
+				temp->initialdata("/", loc);
 			}
 			iter++;
 		}
@@ -141,11 +193,21 @@ void Table::loadtocolumn(string& filename)
 				a = stoi(attrvalue);
 				temp->insertdata(a, loc);
 			}
-			else {
+			else if (typemap[attrname[i]] == "DOUBLE") {
 				Column<double>* temp = dynamic_cast<Column<double>*>(columns[attrname[i]]);
 				double a;
 				a = stod(attrvalue);
 				temp->insertdata(a, loc);
+			}
+			else if (typemap[attrname[i]] == "DATE") {
+				Column<string>* temp = dynamic_cast<Column<string>*>(columns[attrname[i]]);
+				//string value(attrvalue.begin()+1,attrvalue.end()-1);
+				temp->insertdata(attrvalue, loc);
+			}
+			else if (typemap[attrname[i]] == "TIME") {
+				Column<string>* temp = dynamic_cast<Column<string>*>(columns[attrname[i]]);
+				//string value(attrvalue.begin()+1,attrvalue.end()-1);
+				temp->insertdata(attrvalue, loc);
 			}
 		}
 		size++;//扩行完成
