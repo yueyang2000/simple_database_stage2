@@ -5,20 +5,21 @@
 #include <algorithm>
 #include "Group.h"
 #include "calculate.h"
+#include "datetime.h"
 #include <regex>
 void Quary::execute()
 {
 	parser();
-
+	//debug();
 	if (simple_mode) {
-		simple_create_column();
+		create_column();
 
 		get_result();
 	}
-	else if (use_table.size() == 1)//单表
+	else
 	{
-		simple_create_column();
-		simple_where_clause();
+		create_column();
+		where_clause();
 		get_groupby_id();
 		get_result();
 		sort();
@@ -102,12 +103,7 @@ void Quary::debug()
 			cout << it->first << ' ';
 		}
 	}
-	cout << endl << "use_table:";
-	for (auto it = use_table.begin(); it != use_table.end(); it++) {
-		if (it->second != nullptr) {
-			cout << it->first << ' ';
-		}
-	}
+	cout << endl << "use_table:"<<local->tname;
 	cout << endl << "group:";
 	for (int i = 0; i < (int)group.size(); i++)
 	{
@@ -161,7 +157,7 @@ void Quary::output()
 void Quary::parser()
 {
 	int pos = 1;
-	while (true) {
+	while (true) {//循环读取select的列名
 		if (words[pos] == "*") {
 			select_all = true;
 			pos++;
@@ -172,13 +168,26 @@ void Quary::parser()
 			cname += words[pos];
 			pos++;
 		}
-		col_name.push_back(cname);
-		col_output.push_back(true);
+		//函数特判
 		if (cname.find("COUNT") != string::npos ||
 			cname.find("MAX") != string::npos ||
 			cname.find("MIN") != string::npos) {
+			if(cname.find("DISTINCT")!=string::npos){
+				int tmp=cname.find("DISTINCT");
+				cname.insert(tmp+8," ");
+			}
 			has_function = true;
 		}
+		else if(cname.find("ADD")!=string::npos){//ADDDATE(col,n),
+			cname+=words[pos];
+			pos++;
+			while (pos != words.size()&&words[pos] != ","&&words[pos] != "FROM"&&words[pos] != "INTO"&&words[pos] != "AS") {
+				cname += words[pos];
+				pos++;
+			}
+		}
+		col_name.push_back(cname);
+		col_output.push_back(true);
 		if (pos == words.size()) {
 			as.push_back("");
 			simple_mode = true;
@@ -198,7 +207,6 @@ void Quary::parser()
 				pos++;
 			}
 		}
-
 	}
 	/*while(words[pos]!="FROM"&&words[pos]!="INTO")
 	{
@@ -237,15 +245,10 @@ void Quary::parser()
 	}
 	//这个时候读到了from
 	pos++;
-	while (pos != words.size()&&words[pos] != "WHERE"&&words[pos] != "GROUP"&&words[pos] != "ORDER")
-	{
-		if (words[pos] == ",") { pos++; continue; }
-		use_table[words[pos]] = whichdb->gettable(words[pos]);
-		//cout<<words[pos]<<endl;
-		pos++;
-	}
+	local = whichdb->gettable(words[pos]);
+	rnum = local->size;
+	pos++;
 	//知道table了，select all 时需要马上把table的所有列名插进去
-	Table* local = use_table.begin()->second;
 	if (select_all)
 	{
 		for (int i = 0; i < local->order.size(); i++) {
@@ -287,6 +290,7 @@ void Quary::parser()
 	{
 		pos += 2;
 		order_by = words[pos];
+		pos++;
 		/*string temp = "(" + words[pos + 1] + ")";
 		if (order_by == "COUNT") {
 			order_by += temp;
@@ -299,11 +303,16 @@ void Quary::parser()
 			col_name.push_back(order_by);
 			col_output.push_back(false);
 		}
+		if(pos!=words.size()){
+			if(words[pos]=="DESC"){
+				ASC=false;
+			}
+		}
 	}
 	//cout << "parser succeed!\n";
 }
 
-void Quary::simple_create_column()
+void Quary::create_column()
 {
 	if (simple_mode) {
 		for (int i = 0; i < (int)col_name.size(); i++) {
@@ -313,13 +322,26 @@ void Quary::simple_create_column()
 		}
 		return;
 	}
-	Table* local = use_table.begin()->second;
 	for (int i = 0; i < (int)col_name.size(); i++)
 	{
 		colbase* temp=nullptr;
 		if (col_name[i].find("COUNT") != string::npos)
 		{
 			temp = new Column<int>(col_name[i], 1, "INT");
+		}
+		else if(col_name[i].find("MAX")!=string::npos ||
+		col_name[i].find("MIN")!=string::npos){
+			string cname(col_name[i].begin()+4,col_name[i].end()-1);
+			string t=local->columns[cname]->gettype();
+			if(t=="INT"){
+				temp=new Column<int>(col_name[i],1,"INT");
+			}
+			else if(t=="DOUBLE"){
+				temp=new Column<double>(col_name[i],1,"DOUBLE");
+			}
+			else{
+				temp=new Column<string>(col_name[i],1,t);
+			}
 		}
 		else if (local->columns.count(col_name[i]))//是列名
 		{
@@ -354,9 +376,8 @@ void Quary::simple_create_column()
 }
 
 
-bool Quary::simple_judge(string& str, int r)
+bool Quary::judge(string& str, int r)
 {
-	Table* local = use_table.begin()->second;
 	string op;                                  //用来读取运算符'>''<''='
 	for (int i = 0; i < str.size(); i++) {      //遍历str，遇到'<'，'>'，'='后就停下
 		if (str[i] == '<' || str[i] == '=' || str[i] == '>') {
@@ -419,9 +440,8 @@ bool Quary::simple_judge(string& str, int r)
 	}
 	return false;
 }
-void Quary::simple_where_clause()
+void Quary::where_clause()
 {
-	int rnum = use_table.begin()->second->size;
 	int b = where_begin;
 	int e = where_end;
 	if (where_begin == -1)                       //如果没有where
@@ -502,7 +522,7 @@ void Quary::simple_where_clause()
 				}
 			}
 			else {
-				cal.push(simple_judge(temp, i));           //第i行
+				cal.push(judge(temp, i));           //第i行
 				//cout<<"judge "<<(int)cal.top()<<endl;
 			}
 		}
@@ -517,7 +537,6 @@ void Quary::simple_where_clause()
 	cout << endl;*/
 }
 void Quary::get_groupby_id() {
-	int rnum = use_table.begin()->second->size;
 	if (group.size() == 0) {//no group by
 		if (has_function) {//有函数，则整体是一组
 			for (int i = 0; i < rnum; i++) {
@@ -535,7 +554,6 @@ void Quary::get_groupby_id() {
 		}
 		return;
 	}
-	Table* local = use_table.begin()->second;
 	vector<colbase*> compare;//group的列
 	Group groupby;
 	for (int i = 0; i < group.size(); i++) {
@@ -575,8 +593,6 @@ void Quary::get_result()
 		row = 1;
 		return;
 	}
-	int rnum = use_table.begin()->second->size;
-	Table* local = use_table.begin()->second;
 	for (int id = 0; id < max_id; id++) {
 		for (int j = 0; j < col_name.size(); j++) {
 			if (local->columns.count(col_name[j])) {//是列名
@@ -598,13 +614,13 @@ void Quary::get_result()
 				if (col_name[j][0] == 'C') {//COUNT
 					int count = 0;
 					if(cname.find("DISTINCT")!=string::npos){
-						string rcname(cname.begin()+8,cname.end());
+						string rcname(cname.begin()+8,cname.end());//重新截取的列名
 						handle_col column(local->columns[rcname]);
 						string t=local->columns[rcname]->gettype();
 						if(t=="INT"||t=="DOUBLE"){
 							set<double> s;
 							for(int i=0;i<rnum;i++){
-								if(group_id[i]==id&&!local->columns[cname]->getnull(i)){
+								if(group_id[i]==id&&!local->columns[rcname]->getnull(i)){
 									double val=stof(column.getvalue(i));
 									if(s.count(val)){
 										continue;
@@ -619,7 +635,7 @@ void Quary::get_result()
 						else{
 							set<string> s;
 							for(int i=0;i<rnum;i++){
-								if(group_id[i]==id&&!local->columns[cname]->getnull(i)){
+								if(group_id[i]==id&&!local->columns[rcname]->getnull(i)){
 									string val=column.getvalue(i);
 									if(s.count(val)){
 										continue;
@@ -649,10 +665,10 @@ void Quary::get_result()
 					auto ptr = dynamic_cast<Column<int>*>(result[col_name[j]]);
 					ptr->push_back(count);
 				}
-				else if (col_name[j][0] == 'M'&&col_name[j][1]=='A') {
+				else if (col_name[j][0] == 'M'&&col_name[j][1]=='A') {//MAX
 					string t=local->columns[cname]->gettype();
 					handle_col column(local->columns[cname]);
-					auto ptr = dynamic_cast<Column<string>*>(result[col_name[j]]);
+
 					if(t=="INT"){
 						int max=-99999999;
 						for(int i=0;i<rnum;i++){
@@ -660,7 +676,8 @@ void Quary::get_result()
 								max=stoi(column.getvalue(i));
 							}
 						}
-						ptr->push_back(to_string(max));
+						auto ptr = dynamic_cast<Column<int>*>(result[col_name[j]]);
+						ptr->push_back(max);
 					}
 					else if(t=="DOUBLE"){
 						double max=-99999999;
@@ -669,7 +686,8 @@ void Quary::get_result()
 								max=stof(column.getvalue(i));
 							}
 						}
-						ptr->push_back(to_string(max));
+						auto ptr = dynamic_cast<Column<double>*>(result[col_name[j]]);
+						ptr->push_back(max);
 					}
 					else{
 						string max="";
@@ -678,21 +696,23 @@ void Quary::get_result()
 								max=column.getvalue(i);
 							}
 						}
+						auto ptr = dynamic_cast<Column<string>*>(result[col_name[j]]);
 						ptr->push_back(max);						
 					}
 				}
-				else if (col_name[j][0] == 'M'&&col_name[j][1]=='I') {
+				else if (col_name[j][0] == 'M'&&col_name[j][1]=='I') {//MIN
 					string t=local->columns[cname]->gettype();
 					handle_col column(local->columns[cname]);
 					auto ptr = dynamic_cast<Column<string>*>(result[col_name[j]]);
 					if(t=="INT"){
-						int min=99999999;
+						int min=2147483647;
 						for(int i=0;i<rnum;i++){
 							if(group_id[i]==id &&!local->columns[cname]->getnull(i)&& min>stoi(column.getvalue(i))){
 								min=stoi(column.getvalue(i));
 							}
 						}
-						ptr->push_back(to_string(min));
+						auto ptr = dynamic_cast<Column<int>*>(result[col_name[j]]);
+						ptr->push_back(min);
 					}
 					else if(t=="DOUBLE"){
 						double min=99999999;
@@ -701,7 +721,8 @@ void Quary::get_result()
 								min=stof(column.getvalue(i));
 							}
 						}
-						ptr->push_back(to_string(min));
+						auto ptr = dynamic_cast<Column<double>*>(result[col_name[j]]);
+						ptr->push_back(min);
 					}
 					else{
 						string min=column.getvalue(0);
@@ -710,6 +731,7 @@ void Quary::get_result()
 								min=column.getvalue(i);
 							}
 						}
+						auto ptr = dynamic_cast<Column<string>*>(result[col_name[j]]);
 						ptr->push_back(min);						
 					}
 				}
@@ -730,12 +752,43 @@ void Quary::get_result()
 								index = formula.find(oldval);
 							}
 						}
-						if (formula == col_name[j]) { row = max_id = 1; }
+						string answer;
+						//if (formula == col_name[j]) { row = max_id = 1; }//没有列名
+						if(formula=="CURTIME()"){
+							answer=CurTime();
+						}
+						else if(formula=="CURDATE"){
+							answer=CurDate();
+						}
+						else if(formula.find("ADDDATE")!=string::npos){
+							int pos=formula.find(",");
+							string val1(formula.begin()+8,formula.begin()+pos);
+							string val2(formula.begin()+pos+1,formula.end()-1);
+							if(val1=="CURDATE()"){
+								val1=CurDate();
+							}
+							calculate cal(val2);
+							val2=cal.getresult();
+							string tmp=val1+" "+val2;
+							answer=adddate(tmp);
+						}
+						else if(formula.find("ADDTIME")!=string::npos){
+							int pos=formula.find(",");
+							string val1(formula.begin()+8,formula.begin()+pos);
+							string val2(formula.begin()+pos+1,formula.end()-1);
+							if(val1=="CURDATE()"){
+								val1=CurTime();
+							}
+							calculate cal(val2);
+							val2=cal.getresult();
+							string tmp=val1+" "+val2;
+							answer=addtime(tmp);
+						}
+						else{
 						calculate cal(formula);
-						string answer = cal.getresult();
+						answer = cal.getresult();
+						}
 						//cout<<formula<<'='<<answer<<endl;
-						while (*(answer.end() - 1) == '0') { answer.erase(answer.end() - 1); }
-						if (*(answer.end() - 1) == '.') { answer.erase(answer.end() - 1); }//去零
 						auto ptr = dynamic_cast<Column<string>*>(result[col_name[j]]);
 						ptr->push_back(answer);
 						break;
@@ -751,11 +804,11 @@ void Quary::sort() {
 	for (int j = column.size() - 1; j > 0; j--) {
 		for (int i = 0; i < j; i++) {
 			if (column.compare(i, i + 1, 1)) {
-				swap_row(i, i + 1);
+				if(ASC){swap_row(i, i + 1);}
 				//cout<<"swap"<<i<<' '<<i+1<<endl;
 			}
 			else {
-				//cout<<i<<"smaller than"<<i+1<<endl;
+				if(!ASC){swap_row(i,i+1);}
 			}
 		}
 	}
