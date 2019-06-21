@@ -1,6 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "Database.h"
-//#define LOCAL
+#define LOCAL
 //#define REMOTE
 Database* whichdb;
 string operation;
@@ -33,7 +33,7 @@ int main() {
 #endif
 #ifdef LOCAL
 	//FILE *stream;
-	freopen("input.txt", "r", stdin);
+	freopen("/Users/yueyang/yiqunyang/大一下/面向对象的程序设计基础/database/database/input.txt", "r", stdin);
 #endif
 	while (get_operation()) {
 		//在未遇到EOF之前逐行读入字符串，每行是一个指令
@@ -45,7 +45,5 @@ int main() {
 	fclose(stdin);
 #endif
 	//save_database();
-
 	return 0;
 }
-

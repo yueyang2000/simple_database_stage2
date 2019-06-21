@@ -135,7 +135,12 @@ void usedatabase() {
 }
 
 bool Process_operation(string& operation) {//将输⼊规范化，即去掉所有的括号和逗号，各个命令成分之间用空格相隔，使得接下来可以⽅便的使用字符串流来逐个部分地解析。
+
 	operation.erase(operation.end() - 1);//get rid of ;
+	if(operation.find("UNION")!=string::npos){
+		//Union_engine(operation);
+		return false;
+	}
 	string op;
 	stringstream tmpss;
 	tmpss.clear(); tmpss << operation; tmpss >> op;
@@ -143,6 +148,7 @@ bool Process_operation(string& operation) {//将输⼊规范化，即去掉所�
 	{
 		Quary quary(operation);
 		quary.execute();
+		quary.output();
 		while (ss >> op) {}
 		return false;
 	}

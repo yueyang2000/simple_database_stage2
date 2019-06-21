@@ -14,7 +14,6 @@ private:
 	vector<bool> col_output;
 	vector<string> as;
 	map<string, colbase*> result;
-	map<string, Table*> use_table;
 	vector<string> group;
 	vector<int> group_id;
 	int max_id{ 0 };//比最大id大1
@@ -27,17 +26,18 @@ private:
 	string filename;
 	vector<bool> pick;
 	int row{ 0 };//行数
-
-	int UNION{ -1 };
+	bool ASC{true};
+	//本查询所对应表格的指针、行数
+	Table* local;
+	int rnum;
 public:
 	void debug();
 	Quary(string& sql);
 	void parser();
 	void execute();
-	void simple_create_column();
-	void simple_where_clause();
-	bool simple_judge(string& str, int r);
-	void simple_calculate();//纯计算器
+	void create_column();
+	void where_clause();
+	bool judge(string& str, int r);
 	void get_result();//根据groupby_id生成计算结果
 	void get_groupby_id();
 	void sort();
