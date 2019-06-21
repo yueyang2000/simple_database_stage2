@@ -31,7 +31,7 @@ set<string> Quary::keywords                                             //set容
 	"TABLES","INT","DOUBLE","CHAR","NOT","NULL","INSERT","INTO",
 	"VALUES","DELETE","FROM","UPDATE","SET","SELECT","COLUMNS",
 	"DROP","AND","OR","XOR","NOT","OUTFILE","LEFT","RIGHT","ON",
-	"GROUP","BY","ORDER",
+	"GROUP","BY","ORDER","MAX","MIN","DISTINCT"
 	"ABS","SIN","COS","FLOOR","TAN","SQRT","PI","MOD","DIV" //math functions
 	"DATE","TIME"
 };
@@ -186,8 +186,10 @@ void Quary::parser()
 		}//没有FROM
 		else if (words[pos] == "AS") {
 			as.push_back(words[pos + 1]);
-			pos += 3;
-			continue;
+			if (words[pos+2] == "FROM" || words[pos] == "INTO") { pos+=2;break; }
+			else {//words[pos]==","
+				pos+=3;
+			}
 		}
 		else {
 			as.push_back("");
@@ -595,22 +597,59 @@ void Quary::get_result()
 				string cname(it + 1, col_name[j].end() - 1);
 				if (col_name[j][0] == 'C') {//COUNT
 					int count = 0;
-					if (cname == "*") {
-						for (int i = 0; i < rnum; i++) {
-							if (group_id[i] == id) { count++; }
+					if(cname.find("DISTINCT")!=string::npos){
+						string rcname(cname.begin()+8,cname.end());
+						handle_col column(local->columns[rcname]);
+						string t=local->columns[rcname]->gettype();
+						if(t=="INT"||t=="DOUBLE"){
+							set<double> s;
+							for(int i=0;i<rnum;i++){
+								if(group_id[i]==id&&!local->columns[cname]->getnull(i)){
+									double val=stof(column.getvalue(i));
+									if(s.count(val)){
+										continue;
+									}
+									else{
+										count++;
+										s.insert(val);
+									}
+								}
+							}
+						}
+						else{
+							set<string> s;
+							for(int i=0;i<rnum;i++){
+								if(group_id[i]==id&&!local->columns[cname]->getnull(i)){
+									string val=column.getvalue(i);
+									if(s.count(val)){
+										continue;
+									}
+									else{
+										count++;
+										s.insert(val);
+									}
+								}
+							}
 						}
 					}
-					else {
-						for (int i = 0; i < rnum; i++) {
-							if (group_id[i] == id && !local->columns[cname]->getnull(i)) {
-								count++;
+					else{
+						if (cname == "*") {
+							for (int i = 0; i < rnum; i++) {
+								if (group_id[i] == id) { count++; }
+							}
+						}
+						else {
+							for (int i = 0; i < rnum; i++) {
+								if (group_id[i] == id && !local->columns[cname]->getnull(i)) {
+									count++;
+								}
 							}
 						}
 					}
 					auto ptr = dynamic_cast<Column<int>*>(result[col_name[j]]);
 					ptr->push_back(count);
 				}
-				else if (col_name[j][0] == 'M'||col_name[j][1]=='A') {
+				else if (col_name[j][0] == 'M'&&col_name[j][1]=='A') {
 					string t=local->columns[cname]->gettype();
 					handle_col column(local->columns[cname]);
 					auto ptr = dynamic_cast<Column<string>*>(result[col_name[j]]);
@@ -642,7 +681,7 @@ void Quary::get_result()
 						ptr->push_back(max);						
 					}
 				}
-				else if (col_name[j][0] == 'M'||col_name[j][1]=='I') {
+				else if (col_name[j][0] == 'M'&&col_name[j][1]=='I') {
 					string t=local->columns[cname]->gettype();
 					handle_col column(local->columns[cname]);
 					auto ptr = dynamic_cast<Column<string>*>(result[col_name[j]]);
