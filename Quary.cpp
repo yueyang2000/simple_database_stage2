@@ -23,7 +23,6 @@ void Quary::execute()
 		get_result();
 		sort();
 	}
-	output();
 	//debug();
 }
 set<string> Quary::keywords                                             //set容器：装有SQL语句的关键字(均为大写)
@@ -594,7 +593,7 @@ void Quary::get_result()
 				auto it = col_name[j].begin();
 				while (*it != '(') it++;
 				string cname(it + 1, col_name[j].end() - 1);
-				if (col_name[j][0] == 'C') {
+				if (col_name[j][0] == 'C') {//COUNT
 					int count = 0;
 					if (cname == "*") {
 						for (int i = 0; i < rnum; i++) {
@@ -611,7 +610,70 @@ void Quary::get_result()
 					auto ptr = dynamic_cast<Column<int>*>(result[col_name[j]]);
 					ptr->push_back(count);
 				}
-				else if (col_name[j][0] == 'M') {}
+				else if (col_name[j][0] == 'M'||col_name[j][1]=='A') {
+					string t=local->columns[cname]->gettype();
+					handle_col column(local->columns[cname]);
+					auto ptr = dynamic_cast<Column<string>*>(result[col_name[j]]);
+					if(t=="INT"){
+						int max=-99999999;
+						for(int i=0;i<rnum;i++){
+							if(group_id[i]==id &&!local->columns[cname]->getnull(i)&& max<stoi(column.getvalue(i))){
+								max=stoi(column.getvalue(i));
+							}
+						}
+						ptr->push_back(to_string(max));
+					}
+					else if(t=="DOUBLE"){
+						double max=-99999999;
+						for(int i=0;i<rnum;i++){
+							if(group_id[i]==id && !local->columns[cname]->getnull(i)&&max<stof(column.getvalue(i))){
+								max=stof(column.getvalue(i));
+							}
+						}
+						ptr->push_back(to_string(max));
+					}
+					else{
+						string max="";
+						for(int i=0;i<rnum;i++){
+							if(group_id[i]==id && !local->columns[cname]->getnull(i)&&max<column.getvalue(i)){
+								max=column.getvalue(i);
+							}
+						}
+						ptr->push_back(max);						
+					}
+				}
+				else if (col_name[j][0] == 'M'||col_name[j][1]=='I') {
+					string t=local->columns[cname]->gettype();
+					handle_col column(local->columns[cname]);
+					auto ptr = dynamic_cast<Column<string>*>(result[col_name[j]]);
+					if(t=="INT"){
+						int min=99999999;
+						for(int i=0;i<rnum;i++){
+							if(group_id[i]==id &&!local->columns[cname]->getnull(i)&& min>stoi(column.getvalue(i))){
+								min=stoi(column.getvalue(i));
+							}
+						}
+						ptr->push_back(to_string(min));
+					}
+					else if(t=="DOUBLE"){
+						double min=99999999;
+						for(int i=0;i<rnum;i++){
+							if(group_id[i]==id && !local->columns[cname]->getnull(i)&&min>stof(column.getvalue(i))){
+								min=stof(column.getvalue(i));
+							}
+						}
+						ptr->push_back(to_string(min));
+					}
+					else{
+						string min=column.getvalue(0);
+						for(int i=0;i<rnum;i++){
+							if(group_id[i]==id && !local->columns[cname]->getnull(i)&&min>column.getvalue(i)){
+								min=column.getvalue(i);
+							}
+						}
+						ptr->push_back(min);						
+					}
+				}
 			}
 			else {//是算式
 				for (int i = 0; i < rnum; i++) {
