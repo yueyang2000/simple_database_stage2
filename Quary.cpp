@@ -703,7 +703,7 @@ void Quary::get_result()
 				else if (col_name[j][0] == 'M'&&col_name[j][1]=='I') {//MIN
 					string t=local->columns[cname]->gettype();
 					handle_col column(local->columns[cname]);
-					auto ptr = dynamic_cast<Column<string>*>(result[col_name[j]]);
+					
 					if(t=="INT"){
 						int min=2147483647;
 						for(int i=0;i<rnum;i++){
@@ -757,7 +757,7 @@ void Quary::get_result()
 						if(formula=="CURTIME()"){
 							answer=CurTime();
 						}
-						else if(formula=="CURDATE"){
+						else if(formula=="CURDATE()"){
 							answer=CurDate();
 						}
 						else if(formula.find("ADDDATE")!=string::npos){
@@ -776,7 +776,7 @@ void Quary::get_result()
 							int pos=formula.find(",");
 							string val1(formula.begin()+8,formula.begin()+pos);
 							string val2(formula.begin()+pos+1,formula.end()-1);
-							if(val1=="CURDATE()"){
+							if(val1=="CURTIME()"){
 								val1=CurTime();
 							}
 							calculate cal(val2);

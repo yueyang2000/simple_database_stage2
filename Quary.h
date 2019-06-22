@@ -44,6 +44,7 @@ public:
 	void swap_row(int, int);
 	void output();
 	~Quary();
+	friend class Union;
 };
 
 
