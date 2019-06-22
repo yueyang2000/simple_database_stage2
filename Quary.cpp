@@ -477,7 +477,7 @@ void Quary::where_clause()
 				s.push(words[i]);                     //把AND或OR放入栈中
 			}
 			else {                                  //若栈不为空
-				while (!s.empty() && p[s.top()] > p[words[i]]) {    //当栈不为空且顶部的运算优先级高于当前的运算优先级
+				while (!s.empty() && p[s.top()] >= p[words[i]]) {    //当栈不为空且顶部的运算优先级高于当前的运算优先级
 					suff += s.top();                //把栈顶的词放入待完成的后缀式
 					suff += " ";                    //加一个空格
 					s.pop();                        //把栈顶词pop出来
@@ -592,6 +592,7 @@ void Quary::get_groupby_id() {
 	}
 	cout<<endl;*/
 }
+
 void Quary::get_result()
 {
 	if (simple_mode) {//纯计算器模式
@@ -770,6 +771,7 @@ void Quary::get_result()
 								index = formula.find(oldval);
 							}
 						}
+						auto ptr = dynamic_cast<Column<string>*>(result[col_name[j]]);
 						string answer;
 						//if (formula == col_name[j]) { row = max_id = 1; }//没有列名
 						if(formula=="CURTIME()"){
@@ -785,6 +787,10 @@ void Quary::get_result()
 							if(val1=="CURDATE()"){
 								val1=CurDate();
 							}
+							else if(val1=="/"){
+								ptr->insertnull(val1);
+								break;
+							}
 							calculate cal(val2);
 							val2=cal.getresult();
 							string tmp=val1+" "+val2;
@@ -797,6 +803,10 @@ void Quary::get_result()
 							if(val1=="CURTIME()"){
 								val1=CurTime();
 							}
+							else if(val1=="/"){
+								ptr->insertnull(val1);
+								break;
+							}
 							calculate cal(val2);
 							val2=cal.getresult();
 							string tmp=val1+" "+val2;
@@ -804,7 +814,6 @@ void Quary::get_result()
 						}
 						else{}
 						//cout<<formula<<'='<<answer<<endl;
-						auto ptr = dynamic_cast<Column<string>*>(result[col_name[j]]);
 						ptr->push_back(answer);
 						break;				
 					}
