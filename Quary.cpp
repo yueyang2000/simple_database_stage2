@@ -725,10 +725,11 @@ void Quary::get_result()
 						ptr->push_back(min);
 					}
 					else{
-						string min=column.getvalue(0);
+						string min;
 						for(int i=0;i<rnum;i++){
-							if(group_id[i]==id && !local->columns[cname]->getnull(i)&&min>column.getvalue(i)){
-								min=column.getvalue(i);
+							if(group_id[i]==id && !local->columns[cname]->getnull(i)){
+								if(min==""){min=column.getvalue(i);}
+								else if(min>column.getvalue(i)){min=column.getvalue(i);}
 							}
 						}
 						auto ptr = dynamic_cast<Column<string>*>(result[col_name[j]]);
