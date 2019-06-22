@@ -178,6 +178,15 @@ void Quary::parser()
 			}
 			has_function = true;
 		}
+		else if(cname.find("NOT")!=string::npos ||//给逻辑运算符前后加空格
+			cname.find("OR")!=string::npos||
+			cname.find("XOR")!=string::npos||
+			cname.find("AND")!=string::npos){
+				regex r (" ?( (OR)|(XOR)|(AND)|(NOT)) ?");
+				cname = regex_replace(cname, r, " $1 ");
+				regex r1 ("(^ +)|( +$)");
+				cname = regex_replace(cname, r1, "");
+			}
 		else if(cname.find("ADD")!=string::npos){//ADDDATE(col,n),
 			cname+=words[pos];
 			pos++;
