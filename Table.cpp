@@ -2,7 +2,7 @@
 #include "Table.h"
 
 void stringtoUpper(string& x);
-
+bool legal_date(string date);
 Table::~Table() {//析构函数，用迭代器逐个释放指针对应的内存
 	map<string, colbase*>::iterator it;
 	it = columns.begin();
@@ -209,7 +209,7 @@ void Table::inserttocolumn() {//新建行的操作，首先找到插入位置，
 			primary_double[k] = 1;
 		}
 	}
-	else if (type=="CHAR") {
+	else if (type == "CHAR") {
 		string k(value[pripos].begin() + 1, value[pripos].end() - 1);
 		if (primary_char.count(k)) {
 			cout << k << " as primary key has existed." << endl;
@@ -220,7 +220,10 @@ void Table::inserttocolumn() {//新建行的操作，首先找到插入位置，
 		}
 	}
 	else if (type == "DATE") {
-		string k(value[pripos].begin() + 1, value[pripos].end() - 1);
+		string tmp(value[pripos].begin() + 1, value[pripos].end() - 1);
+		string k;
+		if (legal_date(tmp)) k = tmp;
+		else k = "0000-00-00";
 		if (primary_char.count(k)) {
 			cout << k << " as primary key has existed." << endl;
 			return;
@@ -230,7 +233,12 @@ void Table::inserttocolumn() {//新建行的操作，首先找到插入位置，
 		}
 	}
 	else if (type == "TIME") {
-		string k(value[pripos].begin() + 1, value[pripos].end() - 1);
+		string tmp(value[pripos].begin() + 1, value[pripos].end() - 1);
+		string hour(tmp.end() - 5, tmp.end() - 3);
+		string second(tmp.end() - 2, tmp.end());
+		string k;
+		if (stoi(hour) < 60 && stoi(second) < 60) k = tmp;
+		else k = "00:00:00";
 		if (primary_char.count(k)) {
 			cout << k << " as primary key has existed." << endl;
 			return;
@@ -276,7 +284,10 @@ void Table::inserttocolumn() {//新建行的操作，首先找到插入位置，
 		}
 	}
 	else if (type == "DATE") {
-		string s(value[pripos].begin() + 1, value[pripos].end() - 1);
+		string tmp(value[pripos].begin() + 1, value[pripos].end() - 1);
+		string s;
+		if (legal_date(tmp)) s = tmp;
+		else s = "0000-00-00";
 		for (int i = 0; i < size; i++) {
 			Column<string>* temp = dynamic_cast<Column<string>*> (columns[attrname[pripos]]);
 			if (temp->cmp(i, 1, s) || temp->cmp(i, 3, s)) {
@@ -287,7 +298,12 @@ void Table::inserttocolumn() {//新建行的操作，首先找到插入位置，
 		}
 	}
 	else if (type == "TIME") {
-		string s(value[pripos].begin() + 1, value[pripos].end() - 1);
+		string tmp(value[pripos].begin() + 1, value[pripos].end() - 1);
+		string hour(tmp.end() - 5, tmp.end() - 3);
+		string second(tmp.end() - 2, tmp.end());
+		string s;
+		if (stoi(hour) < 60 && stoi(second) < 60) s = tmp;
+		else s = "00:00:00";
 		for (int i = 0; i < size; i++) {
 			Column<string>* temp = dynamic_cast<Column<string>*> (columns[attrname[pripos]]);
 			if (temp->cmp(i, 1, s) || temp->cmp(i, 3, s)) {
@@ -303,7 +319,7 @@ void Table::inserttocolumn() {//新建行的操作，首先找到插入位置，
 	while (iter != columns.end()) {//初始化占位（一整行，若isnull为1，则此次没有加入该位置数据），保证行的对齐
 		if (typemap[iter->first] == "CHAR") {
 			Column<string>* temp = dynamic_cast<Column<string>*>(iter->second);
-			string value(iter->first.begin() + 1, iter->first.end() - 1);
+			//string value(iter->first.begin() + 1, iter->first.end() - 1);
 			temp->initialdata("/", loc);
 		}
 		else if (typemap[iter->first] == "INT") {
@@ -316,18 +332,19 @@ void Table::inserttocolumn() {//新建行的操作，首先找到插入位置，
 		}
 		else if (typemap[iter->first] == "DATE") {
 			Column<string>* temp = dynamic_cast<Column<string>*>(iter->second);
-			string value(iter->first.begin() + 1, iter->first.end() - 1);
+			//string value(iter->first.begin() + 1, iter->first.end() - 1);
 			temp->initialdata("/", loc);
 		}
 		else if (typemap[iter->first] == "TIME") {
 			Column<string>* temp = dynamic_cast<Column<string>*>(iter->second);
-			string value(iter->first.begin() + 1, iter->first.end() - 1);
+			//string value(iter->first.begin() + 1, iter->first.end() - 1);
 			temp->initialdata("/", loc);
 		}
 		iter++;
 	}
 	for (int i = 0; i < inserttimes; i++) {//真正的赋值操作，调用Column中的插入函数
 		attrvalue = value[i];
+		if (attrvalue == "NULL") continue;
 		if (typemap[attrname[i]] == "CHAR") {
 			Column<string>* temp = dynamic_cast<Column<string>*>(columns[attrname[i]]);
 			string value(attrvalue.begin() + 1, attrvalue.end() - 1);
@@ -347,12 +364,21 @@ void Table::inserttocolumn() {//新建行的操作，首先找到插入位置，
 		}
 		else if (typemap[attrname[i]] == "DATE") {
 			Column<string>* temp = dynamic_cast<Column<string>*>(columns[attrname[i]]);
-			string value(attrvalue.begin() + 1, attrvalue.end() - 1);
+			string tmp(attrvalue.begin() + 1, attrvalue.end() - 1);
+			string value;
+			if (legal_date(tmp)) value = tmp;
+			else value = "0000-00-00";
 			temp->insertdata(value, loc);
 		}
 		else if (typemap[attrname[i]] == "TIME") {
 			Column<string>* temp = dynamic_cast<Column<string>*>(columns[attrname[i]]);
-			string value(attrvalue.begin() + 1, attrvalue.end() - 1);
+			string tmp(attrvalue.begin() + 1, attrvalue.end() - 1);
+			string hour(tmp.end() - 5, tmp.end() - 3);
+			string second(tmp.end() - 2, tmp.end());
+			string value;
+			if (stoi(hour) < 60 && stoi(second) < 60) value = tmp;
+			else value = "00:00:00";
+			//string value(attrvalue.begin() + 1, attrvalue.end() - 1);
 			temp->insertdata(value, loc);
 		}
 	}
