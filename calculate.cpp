@@ -151,7 +151,10 @@ string calculate::getresult() {
 	}
 	double res = s.top();
 	s.pop();
-	return to_string(res);
+	string answer=to_string(res);
+	while (*(answer.end() - 1) == '0') { answer.erase(answer.end() - 1); }
+	if (*(answer.end() - 1) == '.') { answer.erase(answer.end() - 1); }//去零
+	return answer;					
 }
 void calculate::form() {
 	regex r(" ?(\\+|-|\\*|/|%| (DIV) | (MOD) |\\(|\\)) ?");
