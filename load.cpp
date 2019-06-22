@@ -1,11 +1,12 @@
 #include "Database.h"
 #include <fstream>
 #include <sstream>
+bool legal_date(string date);
 void Database::load()
 {
 	string temp;
 	ss >> temp; ss >> temp; ss >> temp;
-	if(temp=="LCAOl"){ss>>temp;}
+	if (temp == "LOCAL") { ss >> temp; }
 	string filename(temp.begin() + 1, temp.end() - 1);
 	ss >> temp; ss >> temp;
 	string tablename;
@@ -63,7 +64,7 @@ void Table::loadtocolumn(string& filename)
 			}
 		}
 		else if (type == "CHAR") {
-			string k(value[pripos].begin() + 1, value[pripos].end() - 1);
+			string k=value[pripos];
 			if (primary_char.count(k)) {
 				cout << k << " as primary key has existed." << endl;
 				return;
@@ -73,7 +74,9 @@ void Table::loadtocolumn(string& filename)
 			}
 		}
 		else if (type == "DATE") {
-			string k(value[pripos].begin() + 1, value[pripos].end() - 1);
+			string k=value[pripos];
+			if(legal_date(k)){}
+			else k = "0000-00-00";
 			if (primary_char.count(k)) {
 				cout << k << " as primary key has existed." << endl;
 				return;
@@ -83,7 +86,12 @@ void Table::loadtocolumn(string& filename)
 			}
 		}
 		else if (type == "TIME") {
-			string k(value[pripos].begin() + 1, value[pripos].end() - 1);
+			string tmp=value[pripos];
+			string hour(tmp.end() - 5, tmp.end() - 3);
+			string second(tmp.end() - 2, tmp.end());
+			string k;
+			if (stoi(hour) < 60 && stoi(second) < 60) k = tmp;
+			else k = "00:00:00";
 			if (primary_char.count(k)) {
 				cout << k << " as primary key has existed." << endl;
 				return;
@@ -118,7 +126,7 @@ void Table::loadtocolumn(string& filename)
 			}
 		}
 		else if (type == "CHAR") {
-			string s(value[pripos].begin() + 1, value[pripos].end() - 1);
+			string s=value[pripos];
 			for (int i = 0; i < size; i++) {
 				Column<string>* temp = dynamic_cast<Column<string>*> (columns[attrname[pripos]]);
 				if (temp->cmp(i, 1, s) || temp->cmp(i, 3, s)) {
@@ -129,7 +137,8 @@ void Table::loadtocolumn(string& filename)
 			}
 		}
 		else if (type == "DATE") {
-			string s(value[pripos].begin() + 1, value[pripos].end() - 1);
+			string s=value[pripos];
+			if (!legal_date(s)) s = "0000-00-00";
 			for (int i = 0; i < size; i++) {
 				Column<string>* temp = dynamic_cast<Column<string>*> (columns[attrname[pripos]]);
 				if (temp->cmp(i, 1, s) || temp->cmp(i, 3, s)) {
@@ -140,7 +149,12 @@ void Table::loadtocolumn(string& filename)
 			}
 		}
 		else if (type == "TIME") {
-			string s(value[pripos].begin() + 1, value[pripos].end() - 1);
+			string tmp=value[pripos];
+			string hour(tmp.end() - 5, tmp.end() - 3);
+			string second(tmp.end() - 2, tmp.end());
+			string s;
+			if (stoi(hour) < 60 && stoi(second) < 60) s = tmp;
+			else s = "00:00:00";
 			for (int i = 0; i < size; i++) {
 				Column<string>* temp = dynamic_cast<Column<string>*> (columns[attrname[pripos]]);
 				if (temp->cmp(i, 1, s) || temp->cmp(i, 3, s)) {
@@ -183,7 +197,7 @@ void Table::loadtocolumn(string& filename)
 		string attrvalue;
 		for (int i = 0; i < inserttimes; i++) {//真正的赋值操作，调用Column中的插入函数
 			attrvalue = value[i];
-			if(attrvalue=="NULL") continue;
+			if (attrvalue == "NULL") continue;
 			if (typemap[attrname[i]] == "CHAR") {
 				Column<string>* temp = dynamic_cast<Column<string>*>(columns[attrname[i]]);
 				//string value(attrvalue.begin()+1,attrvalue.end()-1);
@@ -204,16 +218,23 @@ void Table::loadtocolumn(string& filename)
 			else if (typemap[attrname[i]] == "DATE") {
 				Column<string>* temp = dynamic_cast<Column<string>*>(columns[attrname[i]]);
 				//string value(attrvalue.begin()+1,attrvalue.end()-1);
-				temp->insertdata(attrvalue, loc);
+				string tmp = attrvalue;
+				if (!legal_date(tmp)) tmp = "0000-00-00";
+				temp->insertdata(tmp, loc);
 			}
 			else if (typemap[attrname[i]] == "TIME") {
 				Column<string>* temp = dynamic_cast<Column<string>*>(columns[attrname[i]]);
-				//string value(attrvalue.begin()+1,attrvalue.end()-1);
-				temp->insertdata(attrvalue, loc);
+				string tmp=attrvalue;
+				string hour(tmp.end() - 5, tmp.end() - 3);
+				string second(tmp.end() - 2, tmp.end());
+				string value;
+				if (stoi(hour) < 60 && stoi(second) < 60) value = tmp;
+				else value = "00:00:00";
+				//string value(attrvalue.begin() + 1, attrvalue.end() - 1);
+				temp->insertdata(value, loc);
 			}
 		}
 		size++;//扩行完成
 	}
 	fin.close();
 }
-
