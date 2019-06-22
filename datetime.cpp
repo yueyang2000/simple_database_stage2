@@ -230,37 +230,50 @@ public:
 	}
 };
 
-string addtime(string& op)
+string addtime(string op)
 {
-	string temp = op;
-	for (int i = 0; i < temp.size(); i++)
+	for (int i = 0; i < op.size(); i++)
 	{
-		if ((temp[i] == '(') || (temp[i] == ')') || (temp[i] == '\"') || (temp[i] == '\'') || (temp[i] == ';') || (temp[i] == ','))
+		if((op[i] == '\'')||(op[i] == ':')||(op[i] == '(')||(op[i] == ')')||(op[i] == ','))
 		{
-			temp[i] = ' ';
+			op[i] = ' ';
 		}
 	}
-	stringstream ss(temp);
-	string org, plus;
-	ss >> org >> plus;
-	for (int i = 0; i < org.size(); i++)
+	stringstream ss;
+	ss << op;
+	int h, m, s, at;
+	ss >> h >> m >> s;
+	string add;
+	ss >> add;
+	for (int i = add.size(); i < 6; i++)
 	{
-		if ((org[i] == '.') || (org[i] == ':'))
-		{
-			org[i] = ' ';
-		}
+		add = '0' + add;
 	}
-	for (int i = 0; i < plus.size(); i++)
+	string ah = "", am = "", as = "";
+	ah.push_back(add[0]);ah.push_back(add[1]);
+	am.push_back(add[2]);am.push_back(add[3]);
+	as.push_back(add[4]);as.push_back(add[5]);
+	int tah = atoi(ah.c_str());
+	int tam = atoi(am.c_str());
+	int tas = atoi(as.c_str());
+	at = tah * 3600 + tam * 60 + tas;
+	Time add_time(h, m, s, at);
+	add_time.add();
+	string hour = to_string(add_time.gethour());
+	string minute = to_string(add_time.getminute());
+	string second = to_string(add_time.getsecond());
+	if (hour.size() == 1)
 	{
-		if ((plus[i] == '.') || (plus[i] == ':'))
-		{
-			plus[i] = ' ';
-		}
+		hour = '0' + hour;
 	}
-	int hour, minute, second, pointsecond;
-	stringstream ss1(org);
-	ss1 >> hour >> minute >> second >> pointsecond;
-	Time addti(hour, minute, second, pointsecond, plus);
-	addti.calculate();
-	return addti.thans();
+	if (minute.size() == 1)
+	{
+		minute = '0' + minute;
+	}
+	if (second.size() == 1)
+	{
+		second = '0' + second;
+	}
+	string ans = '\'' + hour + ':' + minute + ':' + second + '\'';
+	return ans;
 }
