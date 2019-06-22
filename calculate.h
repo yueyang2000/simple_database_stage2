@@ -28,12 +28,12 @@ public:
 	void transition();
 	void form();//ÕýÔò±í´ïÊ½
 	bool isfuc(string &str) {
-			if (fuc.count(str) != 0) return true;
-			return false;
+		if (fuc.count(str) != 0) return true;
+		return false;
 	}
 	bool isnumber(string &str) {
-			if (p.count(str) == 0) return true;
-			return false;
-		}
+		if (p.count(str) == 0) return true;
+		return false;
+	}
 	string getresult();
 };

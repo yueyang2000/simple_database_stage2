@@ -13,19 +13,23 @@
 - 删除原有select的所有代码以及相关函数、接口，去调Column.cpp和select.cpp两个文件
 - 6.4 21：00完成group by输出
 - 6.5 0:00 完成order by
-- 现有Quary类已经十分臃肿，考虑在多表时建立新的类型，而Quary只处理单表。
-- 6.6 15:00 发现select *运行不对，查明原因是因为没有维护好col_output
-- 准备支持DATE和TIME类型，仍然使用datapoint，值为int型
+  现有Quary类已经十分臃肿，考虑在多表时建立新的类型，而Quary只处理单表。
+- 6.6 15:00 发现select *运行不对，查明原因是因为没有维护好col_output  
+准备支持DATE和TIME类型，仍然使用datapoint，值为int型
 - 6.6上午，新增handle_col管理所有类型分支和cast，删减Quary.cpp代码量
-- 6.6上午，完成存档、读档，每步操作都存一次（采取的是线性读入读出）
-- 完成远程访问
+- 6.6上午，完成存档、读档，每步操作都存一次（采取的是线性读入读出） 完成远程访问
 - 大佬云集，oop存亡，在此一举。期末临近，两大任务：  
 1.TIME与DATA类的全局实现 2.改变读入方式，实现有无group的统一，改变从列名得到数据的方式对接计算器。
 - 6.11 17:00，实现group_insert和simple_insert的合体，删掉后者
 - 6.11 20:30 实现select计算器功能，且可混合列名使用。原来的group_insert()更名为get_result()可以实现COUNT，普通列名，计算器混合列名以及普通算式的数据获得。
 - 6.11 22:00 完全实现select计算器，支持select一个数学算式而不FROM一个表（通过识别标记simple_mode实现，注意观察每个函数的开头）
 - 还有一点琐碎的工作如DISTINCT,ORDER的升降序
-
+- 6.12 22:00 完成DATE,TIME的基本操作，重写parser()肃清RE，支持insert NULL,重写makefile提高编译速度，基本功能上交OJ得满分 
+面向oj使用make，本地读文件调试请define LOCAL，远程读文件请define REMOTE  
+还有addtime adddate having distinct order升降序没写，多表还在遥远的未来
+- 6.21 大物考试之后 完成MAX，MIN，支持各种类型
+- 6.21 22:30 完成COUNT(DISTINCTcolname)，完善MAX,MIN的存储类型问题方便比较
+- 6.22 19:00 发现MIN的一个小错误
 ## 利用接口
 ### `Column`类接口
 - `update(int i,T changed)`修改第i个数据点为change

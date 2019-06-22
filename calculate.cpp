@@ -11,7 +11,7 @@ map<string, int> calculate::p = { {"+",4},{"-",4},{"*",5},{"/",5},{"%",5},{"DIV"
 void calculate::transition() {
 	stack<string>s;
 	string temp;
-	for(int i=0;i<(int)ex.size();i++) {
+	for (int i = 0; i < (int)ex.size(); i++) {
 		temp = ex[i];
 		if (isnumber(temp)) {
 			suff += temp;
@@ -96,71 +96,74 @@ string calculate::getresult() {
 			s.push(3.14159265358979323846);
 			continue;
 		}
-			if (piece != "NOT"&&!isfuc(piece)&&piece!="m+"&&piece!="m-") {//二元运算符
-				double t2 = s.top(); s.pop();
-				double t1 = s.top(); s.pop();
-				if (piece == "+") {
-					s.push(t1 + t2);
-				}
-				else if (piece == "-") {
-					s.push(t1 - t2);
-				}
-				else if (piece == "*") {
-					s.push(t1*t2);
-				}
-				else if (piece == "/"||piece=="DIV") {
-					if (t2 == 0) {
-						return "NULL";
-					}
-					else {
-						s.push(t1 / t2);
-					}
-				}
-				else if (piece == "%" || piece == "MOD") {
-					if (t2 == 0) {
-						return "NULL";
-					}
-					else {
-						s.push((int)t1 % (int)t2);
-					}
-				}
-				else if (piece == "OR") s.push((double)(t1 || t2));
-				else if (piece == "XOR") {
-					if ((!t1&&t2) || (t1 && !t2)) { s.push(1.0); }
-					else s.push(0.0);
-				}
-				else if (piece == "AND") s.push(t1&&t2);
+		if (piece != "NOT" && !isfuc(piece) && piece != "m+"&&piece != "m-") {//二元运算符
+			double t2 = s.top(); s.pop();
+			double t1 = s.top(); s.pop();
+			if (piece == "+") {
+				s.push(t1 + t2);
 			}
-			else {//一元运算符
-				double t1 = s.top();
-				s.pop();
-				if (piece == "m+") s.push(t1);
-				else if (piece == "m-") s.push(-t1);
-				else if (piece == "NOT") {
-					s.push(!t1);
-				}
-				else if (piece == "ABS(") s.push(abs(t1));
-				else if (piece == "SIN(") s.push(sin(t1));
-				else if (piece == "COS(") s.push(cos(t1));
-				else if (piece == "TAN(") s.push(tan(t1));
-				else if (piece == "EXP(") s.push(exp(t1));
-				else if (piece == "SQRT(") s.push(sqrt(t1));
-				else if (piece == "FLOOR(") s.push(floor(t1));
+			else if (piece == "-") {
+				s.push(t1 - t2);
 			}
-		
+			else if (piece == "*") {
+				s.push(t1*t2);
+			}
+			else if (piece == "/" || piece == "DIV") {
+				if (t2 == 0) {
+					return "NULL";
+				}
+				else {
+					s.push(t1 / t2);
+				}
+			}
+			else if (piece == "%" || piece == "MOD") {
+				if (t2 == 0) {
+					return "NULL";
+				}
+				else {
+					s.push(((int)t1 % (int)t2);
+				}
+			}
+			else if (piece == "OR") s.push((double)(t1 || t2));
+			else if (piece == "XOR") {
+				if ((!t1&&t2) || (t1 && !t2)) { s.push(1.0); }
+				else s.push(0.0);
+			}
+			else if (piece == "AND") s.push(t1&&t2);
+		}
+		else {//一元运算符
+			double t1 = s.top();
+			s.pop();
+			if (piece == "m+") s.push(t1);
+			else if (piece == "m-") s.push(-t1);
+			else if (piece == "NOT") {
+				s.push(!t1);
+			}
+			else if (piece == "ABS(") s.push(abs(t1));
+			else if (piece == "SIN(") s.push(sin(t1));
+			else if (piece == "COS(") s.push(cos(t1));
+			else if (piece == "TAN(") s.push(tan(t1));
+			else if (piece == "EXP(") s.push(exp(t1));
+			else if (piece == "SQRT(") s.push(sqrt(t1));
+			else if (piece == "FLOOR(") s.push(floor(t1));
+		}
+
 	}
 	double res = s.top();
 	s.pop();
-	return to_string(res);
+	string answer=to_string(res);
+	while (*(answer.end() - 1) == '0') { answer.erase(answer.end() - 1); }
+	if (*(answer.end() - 1) == '.') { answer.erase(answer.end() - 1); }//去零
+	return answer;					
 }
 void calculate::form() {
 	regex r(" ?(\\+|-|\\*|/|%| (DIV) | (MOD) |\\(|\\)) ?");
 	expression = regex_replace(expression, r, " $1 ");
-	r = " ?( (OR)| (XOR)|(AND)|(NOT)) ?";
+	r = " ?( (OR)|(XOR)|(AND)|(NOT)) ?";
 	expression = regex_replace(expression, r, " $1 ");
-	r = " ?((ABS) | (SIN) | (EXP) | (COS) | (TAN) | (SQRT) | (FLOOR)|(PI)) ?";
+	r = " ?((ABS)|(SIN)|(EXP)|(COS)|(TAN)|(SQRT)|(FLOOR)|(PI)) ?";
 	expression = regex_replace(expression, r, " $1 ");
-	
+
 	r = "(^ +)|( +$)";
 	expression = regex_replace(expression, r, "");
 	r = " +";
