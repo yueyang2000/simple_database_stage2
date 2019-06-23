@@ -70,7 +70,7 @@ void load_database() {
 				bool notnull;
 				bool primary;
 				fin >> cname >> type >> notnull >> primary;
-				colbase* col=nullptr;
+				colbase* col = nullptr;
 				if (type == "INT") {
 					col = new Column<int>(cname, notnull, type);
 				}
@@ -78,6 +78,12 @@ void load_database() {
 					col = new Column<double>(cname, notnull, type);
 				}
 				else if (type == "CHAR") {
+					col = new Column<string>(cname, notnull, type);
+				}
+				else if (type == "DATE") {
+					col = new Column<string>(cname, notnull, type);
+				}
+				else if (type == "TIME") {
 					col = new Column<string>(cname, notnull, type);
 				}
 				else {}
@@ -97,5 +103,5 @@ void load_database() {
 		}
 	}
 	fin.close();
-	cout << "record found, load succeed!\n";
+	//cout << "record found, load succeed!\n";
 }

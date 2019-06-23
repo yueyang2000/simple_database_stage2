@@ -352,6 +352,12 @@ void Quary::create_column()
 				temp=new Column<string>(col_name[i],1,t);
 			}
 		}
+		else if(col_name[i].find("DATE")!=string::npos){
+			temp=new Column<string>(col_name[i],1,"DATE");
+		}
+		else if(col_name[i].find("TIME")!=string::npos){
+			temp=new Column<string>(col_name[i],1,"TIME");
+		}
 		else if (local->columns.count(col_name[i]))//是列名
 		{
 			string t = local->typemap[col_name[i]];
@@ -378,7 +384,7 @@ void Quary::create_column()
 			else {}
 		}
 		else {//是算式
-			temp = new Column<string>(col_name[i], 1, "CHAR");
+			temp = new Column<double>(col_name[i], 1, "DOUBLE");
 		}
 		result[col_name[i]] = temp;
 	}
@@ -471,7 +477,7 @@ void Quary::where_clause()
 				s.push(words[i]);                     //把AND或OR放入栈中
 			}
 			else {                                  //若栈不为空
-				while (!s.empty() && p[s.top()] > p[words[i]]) {    //当栈不为空且顶部的运算优先级高于当前的运算优先级
+				while (!s.empty() && p[s.top()] >= p[words[i]]) {    //当栈不为空且顶部的运算优先级高于当前的运算优先级
 					suff += s.top();                //把栈顶的词放入待完成的后缀式
 					suff += " ";                    //加一个空格
 					s.pop();                        //把栈顶词pop出来
@@ -586,6 +592,7 @@ void Quary::get_groupby_id() {
 	}
 	cout<<endl;*/
 }
+
 void Quary::get_result()
 {
 	if (simple_mode) {//纯计算器模式
@@ -623,7 +630,7 @@ void Quary::get_result()
 				if (col_name[j][0] == 'C') {//COUNT
 					int count = 0;
 					if(cname.find("DISTINCT")!=string::npos){
-						string rcname(cname.begin()+8,cname.end());//重新截取的列名
+						string rcname(cname.begin()+9,cname.end());//重新截取的列名
 						handle_col column(local->columns[rcname]);
 						string t=local->columns[rcname]->gettype();
 						if(t=="INT"||t=="DOUBLE"){
@@ -705,6 +712,7 @@ void Quary::get_result()
 								max=column.getvalue(i);
 							}
 						}
+						if(max==""){max="NULL";}
 						auto ptr = dynamic_cast<Column<string>*>(result[col_name[j]]);
 						ptr->push_back(max);						
 					}
@@ -741,8 +749,73 @@ void Quary::get_result()
 								else if(min>column.getvalue(i)){min=column.getvalue(i);}
 							}
 						}
+						if(min==""){min="NULL";}
 						auto ptr = dynamic_cast<Column<string>*>(result[col_name[j]]);
 						ptr->push_back(min);						
+					}
+				}
+			}
+			else if(col_name[j].find("TIME")!=string::npos||col_name[j].find("DATE")!=string::npos){//是TIMEDATE函数
+				for (int i = 0; i < rnum; i++) {
+					if (group_id[i] == id) {
+						string formula(col_name[j]);
+						for (int k = 0; k < local->order.size(); k++) {//列名循环
+							string oldval = local->order[k];//列名
+							handle_col column(local->columns[local->order[k]]);
+							string newval = column.getvalue(i);//列名替换为value
+							size_t index = formula.find(oldval);
+							while (index != formula.npos)
+							{
+								formula.erase(index, oldval.size());
+								formula.insert(index, newval);
+								index = formula.find(oldval);
+							}
+						}
+						auto ptr = dynamic_cast<Column<string>*>(result[col_name[j]]);
+						string answer;
+						//if (formula == col_name[j]) { row = max_id = 1; }//没有列名
+						if(formula=="CURTIME()"){
+							answer=CurTime();
+						}
+						else if(formula=="CURDATE()"){
+							answer=CurDate();
+						}
+						else if(formula.find("ADDDATE")!=string::npos){
+							int pos=formula.find(",");
+							string val1(formula.begin()+8,formula.begin()+pos);
+							string val2(formula.begin()+pos+1,formula.end()-1);
+							if(val1=="CURDATE()"){
+								val1=CurDate();
+							}
+							else if(val1=="/"){
+								ptr->insertnull(val1);
+								break;
+							}
+							calculate cal(val2);
+							val2=cal.getresult();
+							string tmp=val1+" "+val2;
+							answer=adddate(tmp);
+						}
+						else if(formula.find("ADDTIME")!=string::npos){
+							int pos=formula.find(",");
+							string val1(formula.begin()+8,formula.begin()+pos);
+							string val2(formula.begin()+pos+1,formula.end()-1);
+							if(val1=="CURTIME()"){
+								val1=CurTime();
+							}
+							else if(val1=="/"){
+								ptr->insertnull(val1);
+								break;
+							}
+							calculate cal(val2);
+							val2=cal.getresult();
+							string tmp=val1+" "+val2;
+							answer=addtime(tmp);
+						}
+						else{}
+						//cout<<formula<<'='<<answer<<endl;
+						ptr->push_back(answer);
+						break;				
 					}
 				}
 			}
@@ -762,52 +835,24 @@ void Quary::get_result()
 								index = formula.find(oldval);
 							}
 						}
-						string answer;
-						//if (formula == col_name[j]) { row = max_id = 1; }//没有列名
-						if(formula=="CURTIME()"){
-							answer=CurTime();
-						}
-						else if(formula=="CURDATE()"){
-							answer=CurDate();
-						}
-						else if(formula.find("ADDDATE")!=string::npos){
-							int pos=formula.find(",");
-							string val1(formula.begin()+8,formula.begin()+pos);
-							string val2(formula.begin()+pos+1,formula.end()-1);
-							if(val1=="CURDATE()"){
-								val1=CurDate();
-							}
-							calculate cal(val2);
-							val2=cal.getresult();
-							string tmp=val1+" "+val2;
-							answer=adddate(tmp);
-						}
-						else if(formula.find("ADDTIME")!=string::npos){
-							int pos=formula.find(",");
-							string val1(formula.begin()+8,formula.begin()+pos);
-							string val2(formula.begin()+pos+1,formula.end()-1);
-							if(val1=="CURTIME()"){
-								val1=CurTime();
-							}
-							calculate cal(val2);
-							val2=cal.getresult();
-							string tmp=val1+" "+val2;
-							answer=addtime(tmp);
-						}
-						else{
 						calculate cal(formula);
-						answer = cal.getresult();
+						string tmp=cal.getresult();
+						auto ptr = dynamic_cast<Column<double>*>(result[col_name[j]]);
+						if(tmp=="NULL"){
+							ptr->insertnull(0);
+							break;
 						}
-						//cout<<formula<<'='<<answer<<endl;
-						auto ptr = dynamic_cast<Column<string>*>(result[col_name[j]]);
+						double answer = stof(tmp);
 						ptr->push_back(answer);
 						break;
+						//cout<<formula<<'='<<answer<<endl;
 					}
 				}
 			}
 		}
 	}
 }
+
 void Quary::sort() {
 	if (order_by == "" || simple_mode) { return; }
 	handle_col column(result[order_by], result[order_by]);

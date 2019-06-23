@@ -65,6 +65,10 @@ public:
 		data[place].isnull = false;
 		data[place].val = x;
 	}
+	void insertnull(T x){
+		datapoint<T> y=datapoint<T>(x,1);
+		data.push_back(y);
+	}
 	void initialdata(T x, int place) {//在每次插入时需要一个占位（初始化）的过程（以避免有些数据为空导致行对不齐）
 		datapoint<T> y = datapoint<T>(x, 1);
 		//此时标记isnull为true
@@ -200,7 +204,7 @@ public:
 		}
 		else{}
 	}
-	//单列：在int类型的列后加一个元素x（主要用于COUNT，MAX，MIN等函数的数值存储）
+	//单列：在int类型的列后加一个元素x（主要用于COUNT函数的数值存储）
 	void push_back(int x) {
 		c_int1->push_back(x);
 	}
@@ -241,7 +245,7 @@ public:
 				c_double1->data.push_back(temp);
 			}
 			else {
-				int v = stof(val);
+				double v = stof(val);
 				datapoint<double> temp(v, 0);
 				c_double1->data.push_back(temp);
 			}
@@ -340,7 +344,7 @@ public:
 		}
 		else { return false; }
 	}
-	int size() {
+	int size() {//单列：返回行数
 		if (type == "INT") {
 			return c_int1->size();
 		}
@@ -358,7 +362,7 @@ public:
 		}
 		else { return -1; }
 	}
-	string getvalue(int i) {//获取字符串版本的第i行数值
+	string getvalue(int i) {//单列：获取字符串版本的第i行数值
 		if (type == "INT") {
 			return to_string(c_int1->getvalue(i));
 		}

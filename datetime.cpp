@@ -1,7 +1,79 @@
 #include <time.h>
 #include <sstream>
 #include <stack>
+
 using namespace std;
+
+bool legal_date(string date)
+{
+	bool ans = true;
+	if (date.size() != 10)
+	{
+		ans = false;
+	}
+	else
+	{
+		int count = 0;
+		for (int i = 0; i < date.size(); i++)
+		{
+			if (date[i] == '-')
+			{
+				date[i] = ' ';
+				count++;
+			}
+		}
+		if (count != 2)
+		{
+			ans = false;
+		}
+		else
+		{
+			stringstream ss;
+			ss << date;
+			string y = "", m = "", d = "";
+			ss >> y >> m >> d;
+			int iy = atoi(y.c_str());
+			int im = atoi(m.c_str());
+			int id = atoi(d.c_str());
+			if ((im > 12) || (im <= 0))
+			{
+				ans = false;
+			}
+			else if ((im == 4) || (im == 6) || (im == 9) || (im == 11))
+			{
+				if ((id <= 0) || (id > 30))
+				{
+					ans = false;
+				}
+			}
+			else if (im == 2)
+			{
+				if ((iy % 400 == 0) || ((iy % 100 != 0) && (iy % 4 == 0)))
+				{
+					if ((id <= 0) || (id > 29))
+					{
+						ans = false;
+					}
+				}
+				else
+				{
+					if ((id <= 0) || (id > 28))
+					{
+						ans = false;
+					}
+				}
+			}
+			else
+			{
+				if ((id > 31) || (id <= 0))
+				{
+					ans = false;
+				}
+			}
+		}
+	}
+	return ans;
+}
 string Current_TimeStamp()
 {
 	time_t t = time(0);
@@ -10,7 +82,6 @@ string Current_TimeStamp()
 	string timestamp = tmp;
 	return timestamp;
 }
-
 string CurDate()
 {
 	time_t t = time(0);
@@ -120,6 +191,10 @@ string adddate(string& op)
 	stringstream ss(temp);
 	int y, m, d, increase;
 	ss >> y >> m >> d >> increase;
+	if ((y == 0) && (m == 0) && (d == 0))
+	{
+		return "0000-00-00";
+	}
 	Day addday(y, m, d, increase);
 	addday.calculate();
 	string tmp, year, month, day;
@@ -142,125 +217,143 @@ string adddate(string& op)
 		day = "0" + day;
 	}
 	tmp = "";
-	tmp = year + "-" + month + "-" + day ;
+	tmp = year + "-" + month + "-" + day;
 	return tmp;
 }
 
-/*Time类和string addtime(string&)打包在一起，string addtime(string&)接受ADDTIME后面的语句，返回一个以string类型储存的时间*/
-/*接受样例格式：('01:00:00.999999', '02:00:00.999998')*/
-/*输出样例格式：'03:00:01.999997'*/
-/*接受样例格式：('01:00:00.999999', '00:00.000001')*/
-/*输出样例格式：'01:00:01:000000'*/
+bool legal_date(string& date)
+{
+	bool ans = true;
+	if (date.size() != 10)
+	{
+		ans = false;
+	}
+	else
+	{
+		int count = 0;
+		for (int i = 0; i < date.size(); i++)
+		{
+			if (date[i] == '-')
+			{
+				date[i] = ' ';
+				count++;
+			}
+		}
+		if (count != 2)
+		{
+			ans = false;
+		}
+		else
+		{
+			stringstream ss;
+			ss << date;
+			string y = "", m = "", d = "";
+			ss >> y >> m >> d;
+			int iy = atoi(y.c_str());
+			int im = atoi(m.c_str());
+			int id = atoi(d.c_str());
+			if ((im > 12) || (im <= 0))
+			{
+				ans = false;
+			}
+			else if ((im == 4) || (im == 6) || (im == 9) || (im == 11))
+			{
+				if ((id <= 0) || (id > 30))
+				{
+					ans = false;
+				}
+			}
+			else if (im == 2)
+			{
+				if ((iy % 400 == 0) || ((iy % 100 != 0) && (iy % 4 == 0)))
+				{
+					if ((id <= 0) || (id > 29))
+					{
+						ans = false;
+					}
+				}
+				else
+				{
+					if ((id <= 0) || (id > 28))
+					{
+						ans = false;
+					}
+				}
+			}
+			else
+			{
+				if ((id > 31) || (id <= 0))
+				{
+					ans = false;
+				}
+			}
+		}
+	}
+	return ans;
+}
+
 
 class Time
 {
-private:
 	int hour;
-	int min;
+	int minute;
 	int second;
-	int pointsecond;
-	string add_time;
+	int adddata;
 public:
-	Time(int hour, int min, int second, int pointsecond, string add_time)
-		:hour(hour), min(min), second(second), pointsecond(pointsecond), add_time(add_time){}
-	void calculate()
+	Time(int hour, int minute, int second, int adddata) :hour(hour), minute(minute), second(second), adddata(adddata) {};
+	int gethour() { return hour; }
+	int getminute() { return minute; }
+	int getsecond() { return second; }
+	void add()
 	{
-		stringstream ss(add_time);
-		stack<int> s;
-		int nowtime;
-		while (ss >> nowtime)
-		{
-			s.push(nowtime);
-		}
-		int times[4] = { 0, 0, 0, 0 };
-		int size0 = s.size();
-		for (int i = 3; i >= 4 - size0; i--)
-		{
-			times[i] = s.top();
-			s.pop();
-		}
-		hour = hour + times[0];
-		min = min + times[1];
-		second = second + times[2];
-		pointsecond = pointsecond + times[3];
-		while (pointsecond > 999999)
-		{
-			pointsecond = pointsecond - 1000000;
-			second++;
-		}
+		second = second + adddata;
+		adddata = 0;
 		while (second > 59)
 		{
 			second = second - 60;
-			min++;
+			minute++;
 		}
-		while (min > 59)
+		while (minute > 59)
 		{
-			min = min - 60;
+			minute = minute - 60;
 			hour++;
 		}
-	}
-	string thans()
-	{
-		string temp;
-		string hour0 = to_string(hour);
-		string min0 = to_string(min);
-		string second0 = to_string(second);
-		string pointsecond0 = to_string(pointsecond);
-		if (hour0.size() == 1)
-		{
-			hour0 = "0" + hour0;
-		}
-		if (min0.size() == 1)
-		{
-			min0 = "0" + min0;
-		}
-		if (second0.size() == 1)
-		{
-			second0 = "0" + second0;
-		}
-		if (pointsecond0.size() != 6)
-		{
-			for (int i = pointsecond0.size(); i < 6; i++)
-			{
-				pointsecond0 = "0" + pointsecond0;
-			}
-		}
-		temp = hour0 + ":" + min0 + ":" + second0 + "." + pointsecond0;
-		return temp;
+		return;
 	}
 };
 
 string addtime(string& op)
 {
-	string temp = op;
-	for (int i = 0; i < temp.size(); i++)
-	{
-		if ((temp[i] == '(') || (temp[i] == ')') || (temp[i] == '\"') || (temp[i] == '\'') || (temp[i] == ';') || (temp[i] == ','))
-		{
-			temp[i] = ' ';
-		}
-	}
-	stringstream ss(temp);
-	string org, plus;
-	ss >> org >> plus;
-	for (int i = 0; i < org.size(); i++)
-	{
-		if ((org[i] == '.') || (org[i] == ':'))
-		{
-			org[i] = ' ';
-		}
-	}
-	for (int i = 0; i < plus.size(); i++)
-	{
-		if ((plus[i] == '.') || (plus[i] == ':'))
-		{
-			plus[i] = ' ';
-		}
-	}
-	int hour, minute, second, pointsecond;
-	stringstream ss1(org);
-	ss1 >> hour >> minute >> second >> pointsecond;
-	Time addti(hour, minute, second, pointsecond, plus);
-	addti.calculate();
-	return addti.thans();
+	for (int i = 0; i < op.size(); i++)
+		if ((op[i] == '\'') || (op[i] == ':') || (op[i] == '(') || (op[i] == ')') || (op[i] == ','))
+			op[i] = ' ';
+	stringstream ss;
+	ss << op;
+	int h, m, s, at;
+	ss >> h >> m >> s;
+	string add;
+	ss >> add;
+	for (int i = add.size(); i < 6; i++)
+		add = '0' + add;
+	string ah = "", am = "", as = "";
+	ah.push_back(add[0]); ah.push_back(add[1]);
+	am.push_back(add[2]); am.push_back(add[3]);
+	as.push_back(add[4]); as.push_back(add[5]);
+	int tah = atoi(ah.c_str());
+	int tam = atoi(am.c_str());
+	int tas = atoi(as.c_str());
+	at = tah * 3600 + tam * 60 + tas;
+	Time add_time(h, m, s, at);
+	add_time.add();
+	string hour = to_string(add_time.gethour());
+	string minute = to_string(add_time.getminute());
+	string second = to_string(add_time.getsecond());
+	if (hour.size() == 1)
+		hour = '0' + hour;
+	if (minute.size() == 1)
+		minute = '0' + minute;
+	if (second.size() == 1)
+		second = '0' + second;
+	string ans = hour + ':' + minute + ':' + second;
+	return ans;
 }

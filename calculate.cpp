@@ -39,7 +39,7 @@ void calculate::transition() {
 				}
 				else {//加减乘除乘除运算符
 					if (temp == "+" || temp == "-") {
-						if (i == 0 || !isnumber(ex[i - 1])) {
+						if (i == 0 || (!isnumber(ex[i - 1])&&ex[i-1]!=")")) {
 							s.push("m" + temp);
 							continue;
 						}
@@ -159,9 +159,9 @@ string calculate::getresult() {
 void calculate::form() {
 	regex r(" ?(\\+|-|\\*|/|%| (DIV) | (MOD) |\\(|\\)) ?");
 	expression = regex_replace(expression, r, " $1 ");
-	r = " ?( (OR)| (XOR)|(AND)|(NOT)) ?";
+	r = " ?( (OR)|(XOR)|(AND)|(NOT)) ?";
 	expression = regex_replace(expression, r, " $1 ");
-	r = " ?((ABS) | (SIN) | (EXP) | (COS) | (TAN) | (SQRT) | (FLOOR)|(PI)) ?";
+	r = " ?((ABS)|(SIN)|(EXP)|(COS)|(TAN)|(SQRT)|(FLOOR)|(PI)) ?";
 	expression = regex_replace(expression, r, " $1 ");
 
 	r = "(^ +)|( +$)";

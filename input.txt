@@ -1,22 +1,77 @@
 CREATE DATABASE OOP;
 USE OOP;
-CREATE TABLE animal(id INT NOT NULL,PRIMARY KEY(id),species CHAR NOT NULL,sex CHAR);
-INSERT INTO animal(id,species) VALUES(1,"c");
-INSERT INTO animal(id,species,sex) VALUES(2,"d","f");
-INSERT INTO animal(id,species,sex) VALUES(3,"d","f");
-INSERT INTO animal(id,species,sex) VALUES(4,"c","f");
-INSERT INTO animal(id,species,sex) VALUES(5,'e',"m");
-INSERT INTO animal(id,species,sex) VALUES(6,'c','m');
-INSERT INTO animal(id,species,sex) VALUES(7,'d','f');
-INSERT INTO animal(id,species,sex) VALUES(8,'d','f');
-INSERT INTO animal(id,species) VALUES(9,'e');
-INSERT INTO animal(id,species) VALUES(10,'c');
-INSERT INTO animal(id,species) VALUES(11,'e');
-INSERT INTO animal(id,species) VALUES(12,'e');
-INSERT INTO animal(id,species) VALUES(13,'e');
-SELECT species,sex,COUNT(*)
-INTO OUTFILE 'output_file'
-FROM animal
-GROUP BY species,sex
-ORDER BY species;
+CREATE TABLE info(id INT NOT NULL,PRIMARY KEY(id),grade DOUBLE NOT NULL,sex CHAR,birthday DATE,alarm TIME);
+INSERT INTO info(id,grade,sex,birthday,alarm) VALUES(5,3.0,'m','2000-01-06','18:22:56');
+INSERT INTO info(id,grade,sex,birthday,alarm) VALUES(2,3.9,'m','2000-02-09','18:27:36');
+INSERT INTO info(id,grade,sex,birthday,alarm) VALUES(1,3.0,'f','2000-08-10','07:12:09');
+INSERT INTO info(id,grade,birthday,alarm) VALUES(4,3.8,'1999-01-14','04:15:45');
+SELECT id, grade, sex INTO OUTFILE 'output_file' FROM info WHERE grade<3.3;
+#实现数据导出，把选择的列和满足条件的行导出到一个新建的文件中
+LOAD DATA INFILE 'load_in_file' INTO TABLE info(id,grade,sex,alarm);
+#实现数据导入，把选中的文件中的数据插入到当前数据库中对应的表中
+SELECT 1+1, SIN(1)+2, SQRT(4)+3, COS((4+1)*3+2), 666, TAN(2/(1-1));
+#实现计算器功能
+DROP DATABASE OOP;
+
+CREATE DATABASE OOP;
+USE OOP;
+CREATE TABLE info(id INT NOT NULL,PRIMARY KEY(id),grade DOUBLE NOT NULL,
+sex CHAR,birthday DATE,alarm TIME);
+INSERT INTO info(id,grade,sex,birthday,alarm) VALUES(5,3.0,'m','2000-01-06','18:22:56');
+INSERT INTO info(id,grade,sex,birthday,alarm) VALUES(2,3.9,'m','2000-02-09','18:27:36');
+INSERT INTO info(id,grade,sex,birthday,alarm) VALUES(1,3.0,'f','2000-08-10','07:12:09');
+INSERT INTO info(id,grade,birthday,alarm) VALUES(4,3.8,'1999-01-14','04:15:45');
+INSERT INTO info(id,grade,sex,birthday,alarm) VALUES(3,3.0,'m','1998-11-19','23:56:16');
+INSERT INTO info(id,grade,sex,birthday,alarm) VALUES(6,1.9,'f','2000-12-25','02:41:38');
+INSERT INTO info(id,grade,birthday,alarm) VALUES(9,4.0,'2001-07-23','17:32:03');
+INSERT INTO info(id,grade,sex,birthday,alarm) VALUES(10,4.0,'f','2010-03-15','13:20:47');
+INSERT INTO info(id,grade,sex,alarm) VALUES(7,1.3,'m','22:11:33');
+INSERT INTO info(id,grade,birthday,alarm) VALUES(8,3.0,'1988-07-30','09:36:54');
+INSERT INTO info(id,grade,sex,birthday,alarm) VALUES(90,4.0,'f','2006-03-12','14:35:23');
+INSERT INTO info(id,grade,sex,birthday) VALUES(78,4.0,'m','2003-07-25');
+INSERT INTO info(id,grade,sex,birthday,alarm) VALUES(15,4.0,'f','2019-06-22','19:53:38');
+SELECT COUNT(DISTINCT sex),grade from info GROUP BY grade ORDER BY grade;
+#实现COUNT(DISTINCT 列名) 查找数据不一样且不为空的行数
+SELECT sex,grade,COUNT(*) FROM info WHERE birthday>2000-01-01 AND id<10 GROUP BY sex,grade ORDER BY grade;
+#实现GROUP BY 多列分组
+SELECT id,grade,sex from info ORDER BY id DESC;
+SELECT id,grade,sex from info ORDER BY id ASC;
+#实现ORDER BY升序降序排列，ORDER BY之后DESC为降序，ASC为升序，默认为升序，完全仿照mysql
+SELECT id AS xx, grade, sex AS xxx from info ORDER BY id; 
+#实现AS关键字可以对列指定别名
+SELECT MAX(grade),MIN(grade),COUNT(*) from info GROUP BY sex ORDER BY COUNT(*);
+#实现MAX，MIN函数
+SELECT NOT 1 XOR 1 AND 1;
+SELECT ABS(SQRT(3)-7)*6+TAN(COS(-5));
+#单纯的计算器举例
+SELECT grade,NOT grade AND 9 XOR (grade-3) from info WHERE id<10;
+SELECT id,grade,id/(grade*3) from info;
+#实现逻辑运算符，算数运算符与列名相结合
+SELECT 10*(id+grade)%(100*(grade-4)),10*(id+grade)/(100*(grade-4)) from info;
+#当除0或余除0时返回NULL
+SELECT SIN(id),COS(id),TAN(id),SQRT(id),FLOOR(id) FROM info WHERE id<20 ORDER BY TAN(id);
+#实现多种数字函数与列名相结合
+SELECT tan(SQRT(id*(id+3))/abs(grade-SIN(-id*grade))) from info ORDER BY ABS(TAN(id+grade));
+#数字函数、列名、算数运算符与ORDER BY结合， ORDER BY 后可以有运算式
+SELECT * from info ORDER BY birthday DESC;
+SELECT * from info ORDER BY alarm ASC;
+#实现DATE和TIME类型 且DATE 和 TIME 支持已有的比较操作符
+SELECT CURTIME(),CURDATE() FROM info;
+#实现CURTIME(),CURDATE()函数，返回当前时间和日期
+SELECT ADDDATE(birthday,10000),ADDDATE(CURDATE(),1000) from info;
+SELECT ADDTIME(alarm,10000),ADDTIME(CURTIME(),101) from info;
+#实现ADDTIME(),ADDDATE()，并可与CURTIME(),CURDATE()结合，其中ADDTIME()完全仿照mysql，101为1分1秒
+SELECT id, birthday, ADDDATE(birthday,id*id) from info;
+#ADDDATE()中可以有计算式或者其他列列名
+DROP DATABASE OOP;
+
+CREATE DATABASE OOP;
+USE OOP;
+CREATE TABLE info(id INT NOT NULL,PRIMARY KEY(id),grade DOUBLE NOT NULL,
+sex CHAR,birthday DATE,alarm TIME);
+INSERT INTO info(id,grade,sex,birthday,alarm) VALUES(5,3.0,'m','1999-02-29','18:22:56');
+INSERT INTO info(id,grade,sex,birthday,alarm) VALUES(2,3.9,'m','2000-02-09','18:61:36');
+INSERT INTO info(id,grade,sex,birthday,alarm) VALUES(1,3.0,'f','2000-08-10','07:12:09');
+SELECT * FROM info;
+#当指定不不合法的MySQL不不能表示的值时使⽤"零"值
 DROP DATABASE OOP;

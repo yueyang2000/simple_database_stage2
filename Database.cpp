@@ -261,14 +261,14 @@ bool Process_operation(string& operation) {//将输⼊规范化，即去掉所�
 		ss.str("");
 		return false;
 	}
-	else if (op == "QUIT") {//删库跑路
-		map<string, Database*>::iterator it;
+	else if (op == "QUIT"||op=="quit") {//删库跑路
+		/*map<string, Database*>::iterator it;
 		it = database.begin();
 		while (it != database.end())
 		{
 			delete it->second;
 			it++;
-		}
+		}*/
 		return true;
 	}
 	else if (op == "DELETE")

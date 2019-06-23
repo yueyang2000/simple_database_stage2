@@ -27,7 +27,11 @@
 - 6.12 22:00 完成DATE,TIME的基本操作，重写parser()肃清RE，支持insert NULL,重写makefile提高编译速度，基本功能上交OJ得满分 
 面向oj使用make，本地读文件调试请define LOCAL，远程读文件请define REMOTE  
 还有addtime adddate having distinct order升降序没写，多表还在遥远的未来
-
+- 6.21 大物考试之后 完成MAX，MIN，支持各种类型
+- 6.21 22:30 完成COUNT(DISTINCTcolname)，完善MAX,MIN的存储类型问题方便比较
+- 6.22 19:00 发现MIN的一个小错误
+- 6.22 21：00 临近ddl又大改...为了实现ORDER BY TAN(id),必须把算式的列数据类型从CHAR换成DOUBLE，同时改进TIME和DATE函数的数据类型和获得数值的方式。特判计算器返回NULL时的处理
+- 6.23 00:21 说明文档完成，设计测例/疯狂debug基本完成，还需要写完实验报告。最后放弃了继续写HAVING和UNION的企图
 ## 利用接口
 ### `Column`类接口
 - `update(int i,T changed)`修改第i个数据点为change

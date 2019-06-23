@@ -1,11 +1,14 @@
-all: local
+all: release
 
-release: main.cpp Table.cpp Database.cpp  whereclause.cpp update.cpp delete.cpp load.cpp Quary.cpp saving.cpp server.cpp calculate.cpp
-	g++ -std=c++11  -o main main.cpp Table.cpp Database.cpp  whereclause.cpp  update.cpp delete.cpp load.cpp Quary.cpp saving.cpp server.cpp calculate.cpp
-local: main.o Table.o Database.o  whereclause.o update.o delete.o load.o Quary.o saving.o calculate.o 
-	g++ -std=c++11  -o main main.o Table.o Database.o  whereclause.o update.o delete.o load.o Quary.o saving.o calculate.o datetime.cpp
-main.o: 
-	g++ -std=c++11 -o main.o -c main.cpp
+remote: server client
+release: main.cpp Table.cpp Database.cpp  whereclause.cpp update.cpp delete.cpp load.cpp Quary.cpp saving.cpp calculate.cpp
+	g++ -std=c++11  -o main main.cpp Table.cpp Database.cpp  whereclause.cpp  update.cpp delete.cpp load.cpp Quary.cpp saving.cpp calculate.cpp datetime.cpp
+local: Table.o Database.o  whereclause.o update.o delete.o load.o Quary.o saving.o calculate.o 
+	g++ -std=c++11  -o main -DLOCAL main.cpp Table.o Database.o  whereclause.o update.o delete.o load.o Quary.o saving.o calculate.o datetime.cpp
+server:
+	g++ -std=c++11 -DREMOTE -o server main.cpp Table.cpp Database.cpp  whereclause.cpp update.cpp delete.cpp load.cpp Quary.cpp saving.cpp calculate.cpp datetime.cpp server.cpp
+client: client.cpp
+	g++ -std=c++11 -o client client.cpp
 Table.o: 
 	g++ -std=c++11 -o Table.o -c Table.cpp
 Database.o:
@@ -25,4 +28,4 @@ saving.o:
 calculate.o: 
 	g++ -std=c++11 -o calculate.o -c calculate.cpp
 clean:
-	rm *.o 
+	rm *.o server client main

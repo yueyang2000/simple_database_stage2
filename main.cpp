@@ -1,6 +1,6 @@
 #define _CRT_SECURE_NO_WARNINGS
 #include "Database.h"
-#define LOCAL
+//#define LOCAL
 //#define REMOTE
 Database* whichdb;
 string operation;
@@ -27,7 +27,7 @@ bool get_operation()
 	return true;
 }
 int main() {
-	//load_database();
+	load_database();
 #ifdef REMOTE
 	server();
 #endif
@@ -39,11 +39,11 @@ int main() {
 		//在未遇到EOF之前逐行读入字符串，每行是一个指令
 		if (Process_operation(operation))break;
 		//只有遇到QUIT指令时会直接跳出循环，结束进程
-		//save_database();
+		save_database();
 	}
 #ifdef LOCAL
 	fclose(stdin);
 #endif
-	//save_database();
+	save_database();
 	return 0;
 }

@@ -25,7 +25,6 @@ int main (int argc, const char * argv[])
     char reply_msg[1024];
 
     if (connect(server_socket, (struct sockaddr *)&server_addr, sizeof(struct sockaddr_in))==0)     {
-    //connect 成功之后，其实系统将你创建的socket绑定到一个系统分配的端口上，且其为全相关，包含服务器端的信息，可以用来和服务器端进行通信。
         long byte_num = recv(server_socket,recv_msg,1<<13,0);
         recv_msg[byte_num] = '\0';
         cout<<recv_msg;
@@ -40,15 +39,10 @@ int main (int argc, const char * argv[])
             long byte_num = recv(server_socket,recv_msg,1024,0);
             recv_msg[byte_num] = '\0';
             cout<<recv_msg;
-            //if(strcmp("Bye\n",recv_msg)){break;}
-            /*if (send(server_socket, reply.c_str(), 1<<13, 0)== -1) {
-                perror("send error");
-            }*/
+            string receive(recv_msg);
+            if(receive=="Bye"){break;}
         }
     }
     else{cout<<"link failed\n";}
-
-    // insert code here...
-    printf("Hello, World!\n");
     return 0;
 }

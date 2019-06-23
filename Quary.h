@@ -8,12 +8,12 @@
 class Quary
 {
 private:
-	static set<string> keywords;
-	vector<string> words;
-	vector<string> col_name;
-	vector<bool> col_output;
-	vector<string> as;
-	map<string, colbase*> result;
+	static set<string> keywords;//关键词
+	vector<string> words;//存储SQL语句
+	vector<string> col_name;//存储该查询涉及的所有列名和算式
+	vector<bool> col_output;//存储对应col_name是否需要输出
+	vector<string> as;//存储类型别名
+	map<string, colbase*> result;//
 	vector<string> group;
 	vector<int> group_id;
 	int max_id{ 0 };//比最大id大1

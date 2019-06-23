@@ -25,15 +25,11 @@ int server()
         perror("socket error");
         return 1;
     }
-
-    //绑定socket：将创建的socket绑定到本地的IP地址和端口，此socket是半相关的，只是负责侦听客户端的连接请求，并不能用于和客户端通信
     int bind_result =bind(server_socket, (struct sockaddr *)&server_addr, sizeof(server_addr));
     if (bind_result == -1) {
         perror("bind error");
         return 1;
     }
-    //bind(server_socket, (struct sockaddr *)&server_addr, sizeof(server_addr));
-    //listen侦听 第一个参数是套接字，第二个参数为等待接受的连接的队列的大小，在connect请求过来的时候,完成三次握手后先将连接放到这个队列中，直到被accept处理。如果这个队列满了，且有新的连接的时候，对方可能会收到出错信息。
     if (listen(server_socket, 5) == -1) {
         perror("listen error");
         return 1;
@@ -42,7 +38,7 @@ int server()
     struct sockaddr_in client_address;
     socklen_t address_len;
     int client_socket = accept(server_socket, (struct sockaddr *)&client_address, &address_len);
-    //返回的client_socket为一个全相关的socket，其中包含client的地址和端口信息，通过client_socket可以和客户端进行通信。
+
     if (client_socket == -1) {
         perror("accept error");
         return -1;
@@ -59,7 +55,7 @@ int server()
         recv_msg[byte_num] = '\0';
         std::string receive(recv_msg);
         if(receive=="quit"){
-            send(client_socket, "Bye\n", 1024, 0);
+            send(client_socket, "Bye", 1024, 0);
             break;
         }
         cout<<"client said:"<<receive<<'\n';
@@ -71,7 +67,7 @@ int server()
         Process_operation(receive);
         cout.rdbuf(backup);
         fout.close();
-        
+    
         std::ifstream fin;
         fin.open("buffer");
         string reply;
